@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Routine Management System - Mirpur High School</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Fixed Navbar -->
+    <nav class="fixed-navbar">
+        <div class="navbar-brand">
+            <img src="logo.jpg" alt="Mirpur High School Logo" class="navbar-logo">
+            <span>Mirpur High School</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- School Header -->
+        <div class="school-header">
+            <h1>🎓 Mirpur High School</h1>
+            <p>Nabinagar, Brahmanbaria - Advanced Routine Management System</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+            <button class="nav-tab" data-tab="teachers">Teachers</button>
+            <button class="nav-tab" data-tab="generator">Generate Routine</button>
+            <button class="nav-tab" data-tab="timetable">View Routine</button>
+            <button class="nav-tab" data-tab="reports">Reports</button>
+            <button class="nav-tab" data-tab="export">Export</button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div class="content-section active" id="dashboard">
+            <h2 class="mb-20">📊 Dashboard Overview</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTeachers">0</div>
+                    <div class="stat-label">Total Teachers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalClasses">0</div>
+                    <div class="stat-label">Total Classes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalSubjects">0</div>
+                    <div class="stat-label">Total Subjects</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRooms">0</div>
+                    <div class="stat-label">Total Rooms</div>
+                </div>
+            </div>
+
+            <div class="alert alert-success">
+                <strong>🎉 System Status:</strong> Advanced routine generation system ready! Zero conflicts guaranteed.
+            </div>
+
+            <div class="mb-20">
+                <h3>Recent Activity</h3>
+                <div class="data-list">
+                    <div class="data-item">
+                        <div class="data-info">
+                            <strong>Perfect Routine Generated</strong><br>
+                            <small>Generated conflict-free routine for Academic Year 2024 - Last updated 2 hours
+                                ago</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teachers Section -->
+        <div class="content-section" id="teachers">
+            <div class="flex justify-between align-center mb-20">
+                <h2>👨‍🏫 Teachers Management</h2>
+                <button class="btn btn-primary" id="addTeacherBtn">Add New Teacher</button>
+            </div>
+            <div class="data-list" id="teachersList"></div>
+        </div>
+
+        <!-- Generator Section -->
+        <div class="content-section" id="generator">
+            <h2 class="mb-20">⚙️ Advanced Routine Generator</h2>
+
+            <div class="alert alert-info">
+                <strong>🚀 Smart Generation:</strong> Our AI-powered system ensures perfect workload distribution, zero
+                conflicts, and optimal class scheduling.
+            </div>
+
+            <div class="form-grid">
+                <div>
+                    <h3>Generation Settings</h3>
+                    <div class="form-group">
+                        <label>Academic Year</label>
+                        <select class="form-control" id="academicYear">
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Semester</label>
+                        <select class="form-control" id="semester">
+                            <option value="First">First Semester</option>
+                            <option value="Second">Second Semester</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Working Days Per Week</label>
+                        <select class="form-control" id="workingDays">
+                            <option value="5">5 Days (Sunday-Thursday)</option>
+                            <option value="6">6 Days (Sunday-Friday)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Periods Per Day</label>
+                        <input type="number" class="form-control" id="periodsPerDay" value="7" min="6" max="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button class="btn btn-success btn-large" id="generateBtn">
+                    🚀 Generate Perfect Routine
+                </button>
+            </div>
+
+            <div class="loading" id="generationLoading">
+                <div class="spinner"></div>
+                <div class="loading-text">
+                    <p><strong>Generating Optimal Routine...</strong></p>
+                    <p id="loadingStep">Analyzing teacher workload...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timetable Section -->
+        <div class="content-section" id="timetable">
+            <div class="flex justify-between align-center mb-20">
+                <h2>📅 Current Routine</h2>
+                <div class="flex gap-10">
+                    <select class="form-control" id="viewClass" style="width: auto;">
+                        <option value="">All Classes</option>
+                    </select>
+                    <select class="form-control" id="viewTeacher" style="width: auto;">
+                        <option value="">All Teachers</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="timetable-container">
+                <div class="timetable-grid" id="timetableGrid"></div>
+            </div>
+
+            <div class="mt-20">
+                <h3>Conflict Analysis</h3>
+                <div id="conflictsList" class="data-list">
+                    <div class="alert alert-success">
+                        ✅ Perfect routine! Zero conflicts detected.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div class="content-section" id="reports">
+            <h2 class="mb-20">📈 Advanced Reports</h2>
+            <div class="form-group">
+                <label>Select Report Type</label>
+                <select class="form-control" id="reportType">
+                    <option value="teacherWorkload">Teacher Workload Analysis</option>
+                    <option value="classDistribution">Class Subject Distribution</option>
+                    <option value="weeklyOverview">Weekly Schedule Overview</option>
+                </select>
+            </div>
+            <div class="text-center mt-20">
+                <button class="btn btn-primary" id="generateReportBtn">Generate Report</button>
+            </div>
+            <div class="mt-20">
+                <h3>Report Preview</h3>
+                <div id="reportPreview" class="data-list">
+                    <p class="text-center">Select report options above and click "Generate Report" to see preview</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Section -->
+        <div class="content-section" id="export">
+            <h2 class="mb-20">📤 Export Routine</h2>
+            <div class="export-options">
+                <button class="btn btn-primary" id="exportPdfBtn">📄 Export to PDF</button>
+                <button class="btn btn-secondary" id="exportExcelBtn">📊 Export to Excel</button>
+                <button class="btn btn-success" id="printBtn">🖨️ Print Routine</button>
+            </div>
+        </div>
+
+        <!-- Teacher Modal -->
+        <div class="modal" id="teacherModal">
+            <div class="modal-content">
+                <h3 class="mb-20">Add New Teacher</h3>
+                <form id="teacherForm">
+                    <div class="form-group">
+                        <label>Teacher Name *</label>
+                        <input type="text" class="form-control" id="teacherName" required>
+                    </div>
+
+                    <div id="teacherSubjectsContainer">
+                        <h4>Subject & Class Assignments</h4>
+                        <div class="subject-assignment-group" data-assignment-id="0">
+                            <div class="form-group">
+                                <label>Subject Name *</label>
+                                <input type="text" class="form-control subject-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Periods Per Week *</label>
+                                <input type="number" class="form-control subject-periods-per-week" value="5" min="1"
+                                    max="10" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Class Grade (6-10) *</label>
+                                <input type="number" class="form-control class-grade" min="6" max="10" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Class Section (A, B, C) *</label>
+                                <input type="text" class="form-control class-section" maxlength="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Room Number *</label>
+                                <input type="text" class="form-control room-number" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Building *</label>
+                                <input type="text" class="form-control building" required>
+                            </div>
+                            <button type="button" class="btn btn-danger remove-subject-assignment hidden">Remove
+                                Subject</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary mt-10" id="addAnotherSubjectBtn">Add Another
+                        Subject</button>
+
+                    <div class="flex justify-between mt-20">
+                        <button type="button" class="btn btn-secondary" data-close="teacherModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Teacher</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Design by Tanvir</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
