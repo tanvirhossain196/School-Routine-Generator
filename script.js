@@ -1,78 +1,81 @@
 // Enhanced Application State
 const AppState = {
-    teachers: [],
-    derivedClasses: [],
-    derivedSubjects: [],
-    derivedRooms: [],
-    timetable: {
-        classWise: {},
-        teacherWise: {},
-        fullSchedule: {}
-    },
-    generatedRoutineTypes: {
-        classWise: false,
-        teacherWise: false,
-        fullSchedule: false
-    },
-    teacherSlotAssignments: {},
-    roomOccupancy: {}
+  teachers: [],
+  derivedClasses: [],
+  derivedSubjects: [],
+  derivedRooms: [],
+  timetable: {
+    classWise: {},
+    teacherWise: {},
+    fullSchedule: {},
+  },
+  generatedRoutineTypes: {
+    classWise: false,
+    teacherWise: false,
+    fullSchedule: false,
+  },
+  teacherSlotAssignments: {},
+  roomOccupancy: {},
 };
 
 // Constants
 const DAYS = ["রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার"];
 const PERIODS = [
-    "১ম ঘন্টা",
-    "২য় ঘন্টা", 
-    "৩য় ঘন্টা",
-    "৪র্থ ঘন্টা",
-    "বিরতি",
-    "৫ম ঘন্টা",
-    "৬ষ্ঠ ঘন্টা",
-    "৭ম ঘন্টা"
+  "১ম ঘন্টা",
+  "২য় ঘন্টা",
+  "৩য় ঘন্টা",
+  "৪র্থ ঘন্টা",
+  "বিরতি",
+  "৫ম ঘন্টা",
+  "৬ষ্ঠ ঘন্টা",
+  "৭ম ঘন্টা",
 ];
 const TIME_SLOTS = [
-    "১০:১৫-১১:০৫",
-    "১১:০৫-১১:৫০",
-    "১১:৫০-১২:৩৫",
-    "১২:৩৫-১:২০",
-    "১:২০-২:০৫",
-    "২:০৫-২:৪৫",
-    "২:৪৫-৩:২৫",
-    "৩:২৫-৪:০০"
+  "১০:১৫-১১:০৫",
+  "১১:০৫-১১:৫০",
+  "১১:৫০-১২:৩৫",
+  "১২:৩৫-১:২০",
+  "১:২০-২:০৫",
+  "২:০৫-২:৪৫",
+  "২:৪৫-৩:২৫",
+  "৩:২৫-৪:০০",
 ];
 
 // Predefined subjects from the routine image
 const PREDEFINED_SUBJECTS = [
-    "বাংলা ১ম",
-    "বাংলা ২য়",
-    "ইংরেজি ১ম",
-    "ইংরেজি ২য়",
-    "গণিত",
-    "সাধারণ গণিত",
-    "উচ্চতর গণিত",
-    "বিজ্ঞান",
-    "পদার্থ",
-    "রসায়ন",
-    "জীববিজ্ঞান",
-    "বাংলাদেশ ও বিশ্বপরিচয়",
-    "ইতিহাস",
-    "ভূগোল",
-    "পৌরনীতি",
-    "অর্থনীতি",
-    "ইসলাম ধর্ম",
-    "হিন্দু ধর্ম",
-    "খ্রিস্ট ধর্ম",
-    "বৌদ্ধ ধর্ম",
-    "কৃষি শিক্ষা",
-    "গার্হস্থ্য বিজ্ঞান",
-    "তথ্য ও যোগাযোগ প্রযুক্তি",
-    "কম্পিউটার",
-    "শারীরিক শিক্ষা",
-    "চারু ও কারুকলা",
-    "সংগীত"
+  "বাংলা ১ম",
+  "বাংলা ২য়",
+  "ইংরেজি ১ম",
+  "ইংরেজি ২য়",
+  "গণিত",
+  "সাধারণ গণিত",
+  "উচ্চতর গণিত",
+  "বিজ্ঞান",
+  "পদার্থ",
+  "রসায়ন",
+  "জীববিজ্ঞান",
+  "বাংলাদেশ ও বিশ্বপরিচয়",
+  "ইতিহাস",
+  "ভূগোল",
+  "পৌরনীতি",
+  "অর্থনীতি",
+  "ব্যবসায় উদ্যোগ",
+  "মানবিক শিক্ষা",
+  "ইসলাম ধর্ম",
+  "হিন্দু ধর্ম",
+  "খ্রিস্ট ধর্ম",
+  "বৌদ্ধ ধর্ম",
+  "কৃষি শিক্ষা",
+  "গার্হস্থ্য বিজ্ঞান",
+  "তথ্য ও যোগাযোগ প্রযুক্তি",
+  "কম্পিউটার",
+  "শারীরিক শিক্ষা",
+  "চারু ও কারুকলা",
+  "সংগীত",
 ];
 
-const generateUniqueId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+const generateUniqueId = () =>
+  Date.now().toString(36) + Math.random().toString(36).substr(2);
 
 // Advanced School Routine Management System
 class AdvancedSchoolRoutineApp {
@@ -1123,15 +1126,10 @@ class AdvancedSchoolRoutineApp {
 
     if (scheduleType === "fullSchedule") {
       this.renderProfessionalFullScheduleView(container);
-    } else {
-      container.style.gridTemplateColumns = `120px repeat(${PERIODS.length}, 1fr)`;
-      this.addTimetableHeaders(container);
-
-      if (teacherFilter && scheduleType === "teacherWise") {
-        this.renderTeacherWiseRoutine(container, teacherFilter);
-      } else if (scheduleType === "classWise") {
-        this.renderClassWiseRoutine(container, classFilter);
-      }
+    } else if (teacherFilter && scheduleType === "teacherWise") {
+      this.renderTeacherWiseRoutine(container, teacherFilter);
+    } else if (scheduleType === "classWise") {
+      this.renderClassWiseRoutine(container, classFilter);
     }
 
     this.performEnhancedConflictAnalysis();
@@ -1202,6 +1200,244 @@ class AdvancedSchoolRoutineApp {
     container.appendChild(selectorDiv);
   }
 
+  renderClassWiseRoutine(container, classFilter) {
+    let classesToDisplay = classFilter
+      ? AppState.derivedClasses.filter((c) => c.id === classFilter)
+      : AppState.derivedClasses;
+
+    classesToDisplay.forEach((classData) => {
+      const classKey = classData.grade.toString();
+
+      // Create class header
+      const classHeaderDiv = document.createElement("div");
+      classHeaderDiv.style.cssText = `
+                background: linear-gradient(135deg, #27ae60, #2ecc71);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                text-align: center;
+                font-weight: 700;
+                font-size: 18px;
+            `;
+      classHeaderDiv.textContent = `ক্লাস ${classData.grade} - দ্বন্দ্ব মুক্ত রুটিন`;
+      container.appendChild(classHeaderDiv);
+
+      // Create professional table
+      const table = document.createElement("table");
+      table.className = "professional-timetable";
+
+      // Create header
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+
+      // Day/Period header
+      const dayPeriodHeader = document.createElement("th");
+      dayPeriodHeader.textContent = "দিন/ঘন্টা";
+      headerRow.appendChild(dayPeriodHeader);
+
+      // Period headers
+      PERIODS.forEach((period, index) => {
+        const periodHeader = document.createElement("th");
+        periodHeader.className = `period-header ${
+          period === "বিরতি" ? "break-header" : ""
+        }`;
+        periodHeader.innerHTML = `
+                    <div>${period}</div>
+                    <span class="period-time">${TIME_SLOTS[index]}</span>
+                `;
+        headerRow.appendChild(periodHeader);
+      });
+
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      // Create body
+      const tbody = document.createElement("tbody");
+
+      DAYS.forEach((day) => {
+        const dayRow = document.createElement("tr");
+
+        // Day cell
+        const dayCell = document.createElement("td");
+        dayCell.textContent = day;
+        dayRow.appendChild(dayCell);
+
+        // Period cells
+        PERIODS.forEach((period) => {
+          const periodCell = document.createElement("td");
+          periodCell.appendChild(
+            this.createCompactTimetableCell(classKey, day, period)
+          );
+          dayRow.appendChild(periodCell);
+        });
+
+        tbody.appendChild(dayRow);
+      });
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+
+      // Add spacing between classes
+      const spacer = document.createElement("div");
+      spacer.style.height = "40px";
+      container.appendChild(spacer);
+    });
+  }
+
+  renderTeacherWiseRoutine(container, teacherId) {
+    const teacher = AppState.teachers.find((t) => t.id === teacherId);
+    if (!teacher) return;
+
+    // Create teacher header
+    const teacherHeaderDiv = document.createElement("div");
+    teacherHeaderDiv.style.cssText = `
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 18px;
+        `;
+    teacherHeaderDiv.textContent = `শিক্ষক: ${teacher.name} - ${
+      teacher.rank || ""
+    } (দ্বন্দ্ব মুক্ত)`;
+    container.appendChild(teacherHeaderDiv);
+
+    // Create professional table
+    const table = document.createElement("table");
+    table.className = "professional-timetable";
+
+    // Create header
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+
+    // Day/Period header
+    const dayPeriodHeader = document.createElement("th");
+    dayPeriodHeader.textContent = "দিন/ঘন্টা";
+    headerRow.appendChild(dayPeriodHeader);
+
+    // Period headers
+    PERIODS.forEach((period, index) => {
+      const periodHeader = document.createElement("th");
+      periodHeader.className = `period-header ${
+        period === "বিরতি" ? "break-header" : ""
+      }`;
+      periodHeader.innerHTML = `
+                <div>${period}</div>
+                <span class="period-time">${TIME_SLOTS[index]}</span>
+            `;
+      headerRow.appendChild(periodHeader);
+    });
+
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Create body
+    const tbody = document.createElement("tbody");
+
+    DAYS.forEach((day) => {
+      const dayRow = document.createElement("tr");
+
+      // Day cell
+      const dayCell = document.createElement("td");
+      dayCell.textContent = day;
+      dayRow.appendChild(dayCell);
+
+      // Period cells
+      PERIODS.forEach((period) => {
+        const periodCell = document.createElement("td");
+        periodCell.appendChild(
+          this.createCompactTeacherCell(teacher, day, period)
+        );
+        dayRow.appendChild(periodCell);
+      });
+
+      tbody.appendChild(dayRow);
+    });
+
+    table.appendChild(tbody);
+    container.appendChild(table);
+  }
+
+  createCompactTimetableCell(classKey, day, period) {
+    const cellContent = document.createElement("div");
+    cellContent.className = "timetable-cell-content";
+
+    if (period === "বিরতি") {
+      cellContent.classList.add("break-cell");
+      cellContent.innerHTML = '<div class="cell-subject">বিরতি</div>';
+    } else {
+      const slotData = AppState.timetable.classWise[classKey]?.[day]?.[period];
+
+      if (slotData) {
+        cellContent.classList.add("filled");
+        const subject = AppState.derivedSubjects.find(
+          (s) => s.id === slotData.subjectId
+        );
+
+        if (subject) {
+          cellContent.style.background = `linear-gradient(135deg, ${subject.color}20, ${subject.color}30)`;
+          cellContent.style.borderLeftColor = subject.color;
+        }
+
+        cellContent.innerHTML = `
+                    <div class="cell-subject">${slotData.subject}</div>
+                    <div class="cell-teacher">${slotData.teacher}</div>
+                    <div class="cell-teacher-rank">${
+                      slotData.teacherRank || ""
+                    }</div>
+                    <div class="cell-room">${slotData.room}</div>
+                    <div class="cell-day-range">${slotData.dayRange}</div>
+                `;
+      } else {
+        cellContent.classList.add("empty-cell");
+        cellContent.innerHTML = '<div class="cell-subject">ফাঁকা</div>';
+      }
+    }
+
+    return cellContent;
+  }
+
+  createCompactTeacherCell(teacher, day, period) {
+    const cellContent = document.createElement("div");
+    cellContent.className = "timetable-cell-content";
+
+    if (period === "বিরতি") {
+      cellContent.classList.add("break-cell");
+      cellContent.innerHTML = '<div class="cell-subject">বিরতি</div>';
+    } else {
+      const slotData =
+        AppState.timetable.teacherWise[teacher.id]?.[day]?.[period];
+
+      if (slotData) {
+        cellContent.classList.add("filled");
+        const subject = AppState.derivedSubjects.find(
+          (s) => s.id === slotData.subjectId
+        );
+
+        if (subject) {
+          cellContent.style.background = `linear-gradient(135deg, ${subject.color}20, ${subject.color}30)`;
+          cellContent.style.borderLeftColor = subject.color;
+        }
+
+        cellContent.innerHTML = `
+                    <div class="cell-subject">${slotData.subject}</div>
+                    <div class="cell-teacher">ক্লাস ${slotData.classKey}</div>
+                    <div class="cell-room">${slotData.room}</div>
+                    <div class="cell-day-range">${slotData.dayRange}</div>
+                `;
+      } else {
+        cellContent.classList.add("empty-cell");
+        cellContent.innerHTML = '<div class="cell-subject">ফাঁকা</div>';
+      }
+    }
+
+    return cellContent;
+  }
+
   renderProfessionalFullScheduleView(container) {
     container.style.gridTemplateColumns = "1fr";
 
@@ -1225,9 +1461,10 @@ class AdvancedSchoolRoutineApp {
                 <p style="color: #7f8c8d; font-size: 16px; margin-bottom: 15px;">
                     নবীনগর, ব্রাহ্মণবাড়িয়া - সাপ্তাহিক ক্লাস রুটিন
                 </p>
-                < style="display: inline-block; background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 8px 20px; border-radius: 25px; font-weight: 600; font-size: 14px;">
+                <div style="display: inline-block; background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 8px 20px; border-radius: 25px; font-weight: 600; font-size: 14px;">
                     ✓ সম্পূর্ণ দ্বন্দ্ব মুক্ত সিস্টেম
                 </div>
+            </div>
         `;
     fullScheduleContainer.appendChild(headerSection);
 
@@ -1394,10 +1631,9 @@ class AdvancedSchoolRoutineApp {
                                         <div style="color: #7f8c8d; font-size: 10px;">${
                                           slot.teacher
                                         }</div>
-                                        <div style="color: #95a5a6; font-size: 9px;">${
+                                        < style="color: #95a5a6; font-size: 9px;">${
                                           slot.teacherRank || ""
                                         }</div>
-                                    </div>
                                 `;
               })
               .join("");
@@ -1456,179 +1692,6 @@ class AdvancedSchoolRoutineApp {
 
     fullScheduleContainer.appendChild(summaryDiv);
     container.appendChild(fullScheduleContainer);
-  }
-
-  addTimetableHeaders(container) {
-    const headerTime = document.createElement("div");
-    headerTime.className = "timetable-header";
-    headerTime.textContent = "দিন/ঘন্টা";
-    headerTime.style.background = "linear-gradient(135deg, #2c3e50, #34495e)";
-    container.appendChild(headerTime);
-
-    PERIODS.forEach((period, index) => {
-      const headerPeriod = document.createElement("div");
-      headerPeriod.className = "timetable-header";
-      headerPeriod.style.background =
-        period === "বিরতি"
-          ? "linear-gradient(135deg, #95a5a6, #7f8c8d)"
-          : "linear-gradient(135deg, #2c3e50, #34495e)";
-      headerPeriod.innerHTML =
-        period === "বিরতি"
-          ? `বিরতি<br><small>${TIME_SLOTS[index]}</small>`
-          : `${period}<br><small>${TIME_SLOTS[index]}</small>`;
-      container.appendChild(headerPeriod);
-    });
-  }
-
-  renderClassWiseRoutine(container, classFilter) {
-    let classesToDisplay = classFilter
-      ? AppState.derivedClasses.filter((c) => c.id === classFilter)
-      : AppState.derivedClasses;
-
-    classesToDisplay.forEach((classData) => {
-      const classKey = classData.grade.toString();
-      this.addClassHeader(container, classData);
-
-      DAYS.forEach((day) => {
-        this.addDayHeader(container, day);
-        PERIODS.forEach((period) => {
-          const cell = this.createTimetableCell(classKey, day, period);
-          container.appendChild(cell);
-        });
-      });
-    });
-  }
-
-  renderTeacherWiseRoutine(container, teacherId) {
-    const teacher = AppState.teachers.find((t) => t.id === teacherId);
-    if (!teacher) return;
-
-    this.addTeacherHeader(container, teacher);
-
-    DAYS.forEach((day) => {
-      this.addDayHeader(container, day);
-      PERIODS.forEach((period) => {
-        const cell = this.createTeacherCell(teacher, day, period);
-        container.appendChild(cell);
-      });
-    });
-  }
-
-  addClassHeader(container, classData) {
-    const classHeader = document.createElement("div");
-    classHeader.className = "timetable-header";
-    classHeader.style.gridColumn = `1 / span ${PERIODS.length + 1}`;
-    classHeader.style.background = "linear-gradient(135deg, #27ae60, #2ecc71)";
-    classHeader.style.marginTop = "10px";
-    classHeader.style.color = "white";
-    classHeader.style.fontWeight = "bold";
-    classHeader.textContent = `ক্লাস ${classData.grade} (দ্বন্দ্ব মুক্ত)`;
-    container.appendChild(classHeader);
-  }
-
-  addTeacherHeader(container, teacher) {
-    const teacherHeader = document.createElement("div");
-    teacherHeader.className = "timetable-header";
-    teacherHeader.style.gridColumn = `1 / span ${PERIODS.length + 1}`;
-    teacherHeader.style.background =
-      "linear-gradient(135deg, #9b59b6, #8e44ad)";
-    teacherHeader.style.marginTop = "10px";
-    teacherHeader.style.color = "white";
-    teacherHeader.style.fontWeight = "bold";
-    teacherHeader.textContent = `শিক্ষক: ${teacher.name} - ${
-      teacher.rank || ""
-    } (দ্বন্দ্ব মুক্ত)`;
-    container.appendChild(teacherHeader);
-  }
-
-  addDayHeader(container, day) {
-    const dayHeader = document.createElement("div");
-    dayHeader.className = "timetable-header";
-    dayHeader.style.background = "linear-gradient(135deg, #3498db, #2980b9)";
-    dayHeader.style.color = "white";
-    dayHeader.style.fontWeight = "600";
-    dayHeader.textContent = day;
-    container.appendChild(dayHeader);
-  }
-
-  createTimetableCell(classKey, day, period) {
-    const cell = document.createElement("div");
-
-    if (period === "বিরতি") {
-      cell.className = "timetable-cell break-cell";
-      cell.style.background = "linear-gradient(135deg, #ecf0f1, #d5dbdb)";
-      cell.innerHTML = '<div class="slot-content">বিরতি</div>';
-    } else {
-      cell.className = "timetable-cell";
-      const slotData = AppState.timetable.classWise[classKey]?.[day]?.[period];
-
-      if (slotData) {
-        const subject = AppState.derivedSubjects.find(
-          (s) => s.id === slotData.subjectId
-        );
-        cell.style.background = subject
-          ? `linear-gradient(135deg, ${subject.color}88, ${subject.color}bb)`
-          : "linear-gradient(135deg, #4caf50, #45a049)";
-        cell.className += " filled";
-        cell.innerHTML = `
-                    <div class="slot-content">
-                        <div class="slot-subject">${slotData.subject}</div>
-                        <div class="slot-teacher">${slotData.teacher}</div>
-                        <div class="slot-teacher-rank">${
-                          slotData.teacherRank || ""
-                        }</div>
-                        <div class="slot-room">${slotData.room} (${
-          slotData.building
-        })</div>
-                        <div class="slot-day-range">Days: ${
-                          slotData.dayRange
-                        }</div>
-                    </div>
-                `;
-      } else {
-        cell.style.background = "linear-gradient(135deg, #ecf0f1, #bdc3c7)";
-        cell.innerHTML = '<div class="slot-content">ফাঁকা</div>';
-      }
-    }
-
-    return cell;
-  }
-
-  createTeacherCell(teacher, day, period) {
-    const cell = document.createElement("div");
-
-    if (period === "বিরতি") {
-      cell.className = "timetable-cell break-cell";
-      cell.style.background = "linear-gradient(135deg, #ecf0f1, #d5dbdb)";
-      cell.innerHTML = '<div class="slot-content">বিরতি</div>';
-    } else {
-      cell.className = "timetable-cell";
-      const slotData =
-        AppState.timetable.teacherWise[teacher.id]?.[day]?.[period];
-
-      if (slotData) {
-        const subject = AppState.derivedSubjects.find(
-          (s) => s.id === slotData.subjectId
-        );
-        cell.style.background = subject
-          ? `linear-gradient(135deg, ${subject.color}88, ${subject.color}bb)`
-          : "linear-gradient(135deg, #3498db, #2980b9)";
-        cell.className += " filled";
-        cell.innerHTML = `
-                    <div class="slot-content">
-                        <div class="slot-subject">${slotData.subject}</div>
-                        <div class="slot-class">ক্লাস ${slotData.classKey}</div>
-                        <div class="slot-room">${slotData.room} (${slotData.building})</div>
-                        <div class="slot-day-range">Days: ${slotData.dayRange}</div>
-                    </div>
-                `;
-      } else {
-        cell.style.background = "linear-gradient(135deg, #ecf0f1, #bdc3c7)";
-        cell.innerHTML = '<div class="slot-content">ফাঁকা</div>';
-      }
-    }
-
-    return cell;
   }
 
   performEnhancedConflictAnalysis() {
