@@ -59,7 +59,7 @@ const PREDEFINED_SUBJECTS = [
   "ভূগোল",
   "পৌরনীতি",
   "অর্থনীতি",
-  "ব্যবসায় উদ্যোগ",
+  "ব্যবসায় উদ্যোগ",
   "মানবিক শিক্ষা",
   "ইসলাম ধর্ম",
   "হিন্দু ধর্ম",
@@ -197,6 +197,7 @@ class AdvancedSchoolRoutineApp {
             id: generateUniqueId(),
             name: assignment.subjectName,
             dayRange: assignment.dayRange,
+            daysPerWeek: assignment.daysPerWeek || 1,
             color: colors[Math.floor(Math.random() * colors.length)],
           });
         }
@@ -286,6 +287,7 @@ class AdvancedSchoolRoutineApp {
           subjectName: assignment.subjectName,
           classKey: assignment.classGrade.toString(),
           dayRange: assignment.dayRange,
+          daysPerWeek: assignment.daysPerWeek || 1,
           assignedDays: 0,
         };
       });
@@ -415,9 +417,9 @@ class AdvancedSchoolRoutineApp {
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
+                    <label>Class Days *</label>
                     <select class="form-control day-range" required>
-                        <option value="">Select day range</option>
+                        <option value="">Select day range or number</option>
                         <option value="1-2">1-2 (Sunday to Monday)</option>
                         <option value="1-3">1-3 (Sunday to Tuesday)</option>
                         <option value="1-4">1-4 (Sunday to Wednesday)</option>
@@ -428,6 +430,11 @@ class AdvancedSchoolRoutineApp {
                         <option value="3-4">3-4 (Tuesday to Wednesday)</option>
                         <option value="3-5">3-5 (Tuesday to Thursday)</option>
                         <option value="4-5">4-5 (Wednesday to Thursday)</option>
+                        <option value="1">1 (Any 1 day per week)</option>
+                        <option value="2">2 (Any 2 days per week)</option>
+                        <option value="3">3 (Any 3 days per week)</option>
+                        <option value="4">4 (Any 4 days per week)</option>
+                        <option value="5">5 (Any 5 days per week)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -513,9 +520,9 @@ class AdvancedSchoolRoutineApp {
                 </div>
             </div>
             <div class="form-group">
-                <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
+                <label>Class Days *</label>
                 <select class="form-control day-range" required>
-                    <option value="">Select day range</option>
+                    <option value="">Select day range or number</option>
                     <option value="1-2">1-2 (Sunday to Monday)</option>
                     <option value="1-3">1-3 (Sunday to Tuesday)</option>
                     <option value="1-4">1-4 (Sunday to Wednesday)</option>
@@ -526,6 +533,11 @@ class AdvancedSchoolRoutineApp {
                     <option value="3-4">3-4 (Tuesday to Wednesday)</option>
                     <option value="3-5">3-5 (Tuesday to Thursday)</option>
                     <option value="4-5">4-5 (Wednesday to Thursday)</option>
+                    <option value="1">1 (Any 1 day per week)</option>
+                    <option value="2">2 (Any 2 days per week)</option>
+                    <option value="3">3 (Any 3 days per week)</option>
+                    <option value="4">4 (Any 4 days per week)</option>
+                    <option value="5">5 (Any 5 days per week)</option>
                 </select>
             </div>
             <div class="form-group">
@@ -600,9 +612,21 @@ class AdvancedSchoolRoutineApp {
         return;
       }
 
+      // Parse day range - handle both range format and single number format
+      let daysPerWeek = 1;
+      if (dayRange.includes("-")) {
+        // Range format like "1-3"
+        const [startDay, endDay] = dayRange.split("-").map(Number);
+        daysPerWeek = endDay - startDay + 1;
+      } else {
+        // Single number format like "2"
+        daysPerWeek = parseInt(dayRange);
+      }
+
       assignments.push({
         subjectName,
         dayRange,
+        daysPerWeek,
         classGrade,
       });
     });
@@ -660,8 +684,12 @@ class AdvancedSchoolRoutineApp {
         .map(
           (assignment) => `
                 <li>
-                    <strong>${assignment.subjectName}</strong> for Class ${assignment.classGrade}
-                    - Days: ${assignment.dayRange}
+                    <strong>${assignment.subjectName}</strong> for Class ${
+            assignment.classGrade
+          }
+                    - Days: ${assignment.dayRange} (${
+            assignment.daysPerWeek || 1
+          } days/week)
                 </li>
             `
         )
@@ -720,9 +748,9 @@ class AdvancedSchoolRoutineApp {
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
+                        <label>Class Days *</label>
                         <select class="form-control day-range" required>
-                            <option value="">Select day range</option>
+                            <option value="">Select day range or number</option>
                             <option value="1-2">1-2 (Sunday to Monday)</option>
                             <option value="1-3">1-3 (Sunday to Tuesday)</option>
                             <option value="1-4">1-4 (Sunday to Wednesday)</option>
@@ -733,6 +761,11 @@ class AdvancedSchoolRoutineApp {
                             <option value="3-4">3-4 (Tuesday to Wednesday)</option>
                             <option value="3-5">3-5 (Tuesday to Thursday)</option>
                             <option value="4-5">4-5 (Wednesday to Thursday)</option>
+                            <option value="1">1 (Any 1 day per week)</option>
+                            <option value="2">2 (Any 2 days per week)</option>
+                            <option value="3">3 (Any 3 days per week)</option>
+                            <option value="4">4 (Any 4 days per week)</option>
+                            <option value="5">5 (Any 5 days per week)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -759,9 +792,9 @@ class AdvancedSchoolRoutineApp {
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
+                        <label>Class Days *</label>
                         <select class="form-control day-range" required>
-                            <option value="">Select day range</option>
+                            <option value="">Select day range or number</option>
                             <option value="1-2">1-2 (Sunday to Monday)</option>
                             <option value="1-3">1-3 (Sunday to Tuesday)</option>
                             <option value="1-4">1-4 (Sunday to Wednesday)</option>
@@ -772,6 +805,11 @@ class AdvancedSchoolRoutineApp {
                             <option value="3-4">3-4 (Tuesday to Wednesday)</option>
                             <option value="3-5">3-5 (Tuesday to Thursday)</option>
                             <option value="4-5">4-5 (Wednesday to Thursday)</option>
+                            <option value="1">1 (Any 1 day per week)</option>
+                            <option value="2">2 (Any 2 days per week)</option>
+                            <option value="3">3 (Any 3 days per week)</option>
+                            <option value="4">4 (Any 4 days per week)</option>
+                            <option value="5">5 (Any 5 days per week)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -811,7 +849,7 @@ class AdvancedSchoolRoutineApp {
     }
   }
 
-  // Enhanced Conflict-Free Timetable Generation with Day Range Support
+  // Enhanced Conflict-Free Timetable Generation with Days Per Week Support
   generateAdvancedTimetable() {
     if (AppState.teachers.length === 0) {
       this.showAlert(
@@ -829,7 +867,7 @@ class AdvancedSchoolRoutineApp {
       "Initializing conflict-free scheduling system...",
       "Analyzing day ranges and teacher schedules...",
       "Implementing advanced conflict detection algorithms...",
-      "Assigning time slots based on day ranges...",
+      "Assigning time slots based on day requirements...",
       "Generating comprehensive schedule views...",
       "Validating complete routine for conflicts...",
     ];
@@ -885,7 +923,10 @@ class AdvancedSchoolRoutineApp {
     const assignmentQueue = this.createPrioritizedAssignmentQueue();
 
     for (const assignment of assignmentQueue) {
-      const success = this.assignSubjectWithDayRange(assignment, actualPeriods);
+      const success = this.assignSubjectWithDaysPerWeek(
+        assignment,
+        actualPeriods
+      );
       if (!success) {
         console.warn(
           `Could not assign ${assignment.subjectName} for class ${assignment.classKey}`
@@ -911,6 +952,7 @@ class AdvancedSchoolRoutineApp {
           classKey: assignment.classGrade.toString(),
           classGrade: assignment.classGrade,
           dayRange: assignment.dayRange,
+          daysPerWeek: assignment.daysPerWeek || 1,
           priority: priority,
         });
       });
@@ -922,10 +964,9 @@ class AdvancedSchoolRoutineApp {
   calculateAssignmentPriority(assignment) {
     let priority = 0;
 
-    // Calculate number of days from range
-    const [startDay, endDay] = assignment.dayRange.split("-").map(Number);
-    const dayCount = endDay - startDay + 1;
-    priority += dayCount * 10;
+    // Priority based on days per week
+    const daysPerWeek = assignment.daysPerWeek || 1;
+    priority += daysPerWeek * 10;
 
     const coreSubjects = [
       "গণিত",
@@ -944,45 +985,85 @@ class AdvancedSchoolRoutineApp {
     return priority;
   }
 
-  assignSubjectWithDayRange(assignment, actualPeriods) {
-    const availableSlots = this.findAvailableSlotsForDayRange(
+  assignSubjectWithDaysPerWeek(assignment, actualPeriods) {
+    const daysPerWeek = assignment.daysPerWeek || 1;
+    const availableSlots = this.findAvailableSlotsForDaysPerWeek(
       assignment,
-      actualPeriods
+      actualPeriods,
+      daysPerWeek
     );
 
-    if (availableSlots.length === 0) {
+    if (availableSlots.length < daysPerWeek) {
       return false;
     }
 
-    const bestSlot = availableSlots[0];
-    return this.assignSubjectToSlotWithDayRange(assignment, bestSlot);
+    // Select best slots for the subject
+    const selectedSlots = availableSlots.slice(0, daysPerWeek);
+    return this.assignSubjectToMultipleSlots(assignment, selectedSlots);
   }
 
-  findAvailableSlotsForDayRange(assignment, actualPeriods) {
+  findAvailableSlotsForDaysPerWeek(assignment, actualPeriods, daysPerWeek) {
     const availableSlots = [];
     const classKey = assignment.classKey;
-    const [startDay, endDay] = assignment.dayRange.split("-").map(Number);
 
-    for (const period of actualPeriods) {
-      let isSlotAvailable = true;
+    // Check if it's a day range or days per week
+    const isRangeFormat = assignment.dayRange.includes("-");
 
-      // Check if this slot is available for all days in the range
-      for (let dayIndex = startDay - 1; dayIndex < endDay; dayIndex++) {
-        const day = DAYS[dayIndex];
+    if (isRangeFormat) {
+      // Handle range format (e.g., "1-3")
+      const [startDay, endDay] = assignment.dayRange.split("-").map(Number);
 
-        if (this.isTeacherBusyInSlot(assignment.teacherId, day, period)) {
-          isSlotAvailable = false;
-          break;
+      for (const period of actualPeriods) {
+        let isSlotAvailable = true;
+
+        // Check if this slot is available for all days in the range
+        for (let dayIndex = startDay - 1; dayIndex < endDay; dayIndex++) {
+          const day = DAYS[dayIndex];
+
+          if (this.isTeacherBusyInSlot(assignment.teacherId, day, period)) {
+            isSlotAvailable = false;
+            break;
+          }
+
+          if (AppState.timetable.classWise[classKey]?.[day]?.[period]) {
+            isSlotAvailable = false;
+            break;
+          }
         }
 
-        if (AppState.timetable.classWise[classKey]?.[day]?.[period]) {
-          isSlotAvailable = false;
-          break;
+        if (isSlotAvailable) {
+          // Add all days in range to the slot
+          for (let dayIndex = startDay - 1; dayIndex < endDay; dayIndex++) {
+            availableSlots.push({
+              period: period,
+              day: DAYS[dayIndex],
+              dayIndex: dayIndex,
+            });
+          }
         }
       }
+    } else {
+      // Handle days per week format (e.g., "3" means any 3 days)
+      for (const period of actualPeriods) {
+        const availableDaysForPeriod = [];
 
-      if (isSlotAvailable) {
-        availableSlots.push({ period: period });
+        DAYS.forEach((day, dayIndex) => {
+          if (
+            !this.isTeacherBusyInSlot(assignment.teacherId, day, period) &&
+            !AppState.timetable.classWise[classKey]?.[day]?.[period]
+          ) {
+            availableDaysForPeriod.push({
+              period: period,
+              day: day,
+              dayIndex: dayIndex,
+            });
+          }
+        });
+
+        // If we have enough available days for this period, add them
+        if (availableDaysForPeriod.length >= daysPerWeek) {
+          availableSlots.push(...availableDaysForPeriod.slice(0, daysPerWeek));
+        }
       }
     }
 
@@ -999,10 +1080,8 @@ class AdvancedSchoolRoutineApp {
     return false;
   }
 
-  assignSubjectToSlotWithDayRange(assignment, slot) {
+  assignSubjectToMultipleSlots(assignment, slots) {
     const classKey = assignment.classKey;
-    const [startDay, endDay] = assignment.dayRange.split("-").map(Number);
-
     const subject = AppState.derivedSubjects.find(
       (s) => s.name === assignment.subjectName
     );
@@ -1012,28 +1091,29 @@ class AdvancedSchoolRoutineApp {
       return false;
     }
 
-    // Assign to all days in the range
-    for (let dayIndex = startDay - 1; dayIndex < endDay; dayIndex++) {
-      const day = DAYS[dayIndex];
-
+    // Check for conflicts before assigning
+    for (const slot of slots) {
       if (
-        this.isTeacherBusyInSlot(assignment.teacherId, day, slot.period) ||
-        AppState.timetable.classWise[classKey]?.[day]?.[slot.period]
+        this.isTeacherBusyInSlot(assignment.teacherId, slot.day, slot.period) ||
+        AppState.timetable.classWise[classKey]?.[slot.day]?.[slot.period]
       ) {
         console.error(
-          `Conflict detected during assignment for ${assignment.subjectName} on ${day} at ${slot.period}`
+          `Conflict detected during assignment for ${assignment.subjectName} on ${slot.day} at ${slot.period}`
         );
         return false;
       }
+    }
 
+    // Assign to all selected slots
+    for (const slot of slots) {
       if (!AppState.timetable.classWise[classKey]) {
         AppState.timetable.classWise[classKey] = {};
       }
-      if (!AppState.timetable.classWise[classKey][day]) {
-        AppState.timetable.classWise[classKey][day] = {};
+      if (!AppState.timetable.classWise[classKey][slot.day]) {
+        AppState.timetable.classWise[classKey][slot.day] = {};
       }
 
-      AppState.timetable.classWise[classKey][day][slot.period] = {
+      AppState.timetable.classWise[classKey][slot.day][slot.period] = {
         classId: `class-${classKey}`,
         subjectId: subject.id,
         teacherId: assignment.teacherId,
@@ -1043,6 +1123,7 @@ class AdvancedSchoolRoutineApp {
         room: `Room ${classKey}${assignment.subjectName.charAt(0)}`,
         building: "Main Building",
         dayRange: assignment.dayRange,
+        daysPerWeek: assignment.daysPerWeek || 1,
       };
     }
 
@@ -1390,7 +1471,9 @@ class AdvancedSchoolRoutineApp {
                       slotData.teacherRank || ""
                     }</div>
                     <div class="cell-room">${slotData.room}</div>
-                    <div class="cell-day-range">${slotData.dayRange}</div>
+                    <div class="cell-day-range">Days: ${
+                      slotData.daysPerWeek || 1
+                    }/week</div>
                 `;
       } else {
         cellContent.classList.add("empty-cell");
@@ -1427,7 +1510,9 @@ class AdvancedSchoolRoutineApp {
                     <div class="cell-subject">${slotData.subject}</div>
                     <div class="cell-teacher">ক্লাস ${slotData.classKey}</div>
                     <div class="cell-room">${slotData.room}</div>
-                    <div class="cell-day-range">${slotData.dayRange}</div>
+                    <div class="cell-day-range">Days: ${
+                      slotData.daysPerWeek || 1
+                    }/week</div>
                 `;
       } else {
         cellContent.classList.add("empty-cell");
@@ -1631,9 +1716,13 @@ class AdvancedSchoolRoutineApp {
                                         <div style="color: #7f8c8d; font-size: 10px;">${
                                           slot.teacher
                                         }</div>
-                                        < style="color: #95a5a6; font-size: 9px;">${
+                                        <div style="color: #95a5a6; font-size: 9px;">${
                                           slot.teacherRank || ""
                                         }</div>
+                                        <div style="color: #bdc3c7; font-size: 8px;">Days: ${
+                                          slot.daysPerWeek || 1
+                                        }/week</div>
+                                    </div>
                                 `;
               })
               .join("");
@@ -1800,7 +1889,7 @@ class AdvancedSchoolRoutineApp {
     this.setupViewFilters();
   }
 
-  // Export functions
+  // Enhanced Export functions with Full Schedule
   exportToPDF() {
     let allContent = this.generateAllRoutineContent();
 
@@ -1825,6 +1914,8 @@ class AdvancedSchoolRoutineApp {
                     .timetable { width: 100%; border-collapse: collapse; margin-bottom: 30px; page-break-inside: avoid; }
                     .timetable th, .timetable td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 11px; }
                     .timetable th { background: #2c3e50; color: white; font-weight: bold; }
+                    .full-schedule-table { font-size: 10px; }
+                    .full-schedule-table th, .full-schedule-table td { padding: 6px 4px; }
                     @media print { body { margin: 10px; } }
                 </style>
             </head>
@@ -1840,7 +1931,7 @@ class AdvancedSchoolRoutineApp {
     printWindow.document.close();
     this.showAlert(
       "success",
-      "দ্বন্দ্ব মুক্ত পিডিএফ এক্সপোর্ট উইন্ডো খোলা হয়েছে!"
+      "দ্বন্দ্ব মুক্ত পিডিএফ এক্সপোর্ট উইন্দো খোলা হয়েছে!"
     );
   }
 
@@ -1874,6 +1965,8 @@ class AdvancedSchoolRoutineApp {
                     .timetable { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
                     .timetable th, .timetable td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 11px; }
                     .timetable th { background: #2c3e50; color: white; font-weight: bold; }
+                    .full-schedule-table { font-size: 9px; }
+                    .full-schedule-table th, .full-schedule-table td { padding: 5px 3px; }
                     @media print { body { margin: 10px; } }
                 </style>
             </head>
@@ -1890,14 +1983,24 @@ class AdvancedSchoolRoutineApp {
   generateAllRoutineContent() {
     let content = "";
 
+    // Add header for full routine
+    content += `
+        <div class="header">
+            <h1>মিরপুর উচ্চ বিদ্যালয়</h1>
+            <p>নবীনগর, ব্রাহ্মণবাড়িয়া - সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)</p>
+        </div>
+    `;
+
+    // Add full schedule first
+    if (AppState.generatedRoutineTypes.fullSchedule) {
+      content += this.generateFullScheduleTable();
+    }
+
+    // Add individual class routines
     if (AppState.generatedRoutineTypes.classWise) {
       AppState.derivedClasses.forEach((cls) => {
         content += this.generateClassTable(cls);
       });
-    }
-
-    if (AppState.generatedRoutineTypes.fullSchedule) {
-      content += this.generateFullScheduleTable();
     }
 
     return content;
@@ -1906,7 +2009,7 @@ class AdvancedSchoolRoutineApp {
   generateFullScheduleTable() {
     let table = `
             <h2>সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)</h2>
-            <table class="timetable">
+            <table class="timetable full-schedule-table">
                 <tr><th>দিন/ঘন্টা</th>
         `;
 
@@ -1930,10 +2033,10 @@ class AdvancedSchoolRoutineApp {
                 (slot) =>
                   `${slot.subject} (${slot.classKey}) - ${slot.teacher} (${
                     slot.teacherRank || ""
-                  })`
+                  }) [${slot.daysPerWeek || 1}d/w]`
               )
               .join("<br>");
-            table += `<td style="font-size: 10px;">${slotsText}</td>`;
+            table += `<td style="font-size: 9px;">${slotsText}</td>`;
           } else {
             table += '<td style="background: #f8f9fa;">ফাঁকা</td>';
           }
@@ -1977,7 +2080,9 @@ class AdvancedSchoolRoutineApp {
               slotData.teacher
             }</small><br><small>${
               slotData.teacherRank || ""
-            }</small><br><small>${slotData.room}</small></td>`;
+            }</small><br><small>${slotData.room}</small><br><small>${
+              slotData.daysPerWeek || 1
+            }d/w</small></td>`;
           } else {
             table += '<td style="background: #f8f9fa;">ফাঁকা</td>';
           }
@@ -1997,6 +2102,46 @@ class AdvancedSchoolRoutineApp {
       [""],
     ];
 
+    // Add full schedule data first
+    if (AppState.generatedRoutineTypes.fullSchedule) {
+      data.push(["সম্পূর্ণ স্কুল রুটিন"]);
+
+      const headerRow = ["দিন/ঘন্টা"];
+      PERIODS.forEach((period, index) => {
+        headerRow.push(
+          `${period === "বিরতি" ? "বিরতি" : period} (${TIME_SLOTS[index]})`
+        );
+      });
+      data.push(headerRow);
+
+      DAYS.forEach((day) => {
+        const row = [day];
+        PERIODS.forEach((period) => {
+          if (period === "বিরতি") {
+            row.push("বিরতি");
+          } else {
+            const slots = AppState.timetable.fullSchedule[day]?.[period] || [];
+            if (slots.length > 0) {
+              const slotsText = slots
+                .map(
+                  (slot) =>
+                    `${slot.subject} (${slot.classKey}) - ${slot.teacher} (${
+                      slot.teacherRank || ""
+                    }) [${slot.daysPerWeek || 1}d/w]`
+                )
+                .join(" | ");
+              row.push(slotsText);
+            } else {
+              row.push("ফাঁকা");
+            }
+          }
+        });
+        data.push(row);
+      });
+      data.push([""]);
+    }
+
+    // Add individual class data
     if (AppState.generatedRoutineTypes.classWise) {
       AppState.derivedClasses.forEach((cls) => {
         const classKey = cls.grade.toString();
@@ -2022,7 +2167,7 @@ class AdvancedSchoolRoutineApp {
                 row.push(
                   `${slotData.subject} | ${slotData.teacher} | ${
                     slotData.teacherRank || ""
-                  } | ${slotData.room}`
+                  } | ${slotData.room} | ${slotData.daysPerWeek || 1}d/w`
                 );
               } else {
                 row.push("ফাঁকা");
@@ -2093,10 +2238,9 @@ class AdvancedSchoolRoutineApp {
     let content = `<div class="report-header"><h3>শিক্ষক কাজের চাপ বিশ্লেষণ</h3></div>`;
 
     AppState.teachers.forEach((teacher) => {
-      let totalDays = 0;
+      let totalDaysPerWeek = 0;
       teacher.assignments.forEach((assignment) => {
-        const [startDay, endDay] = assignment.dayRange.split("-").map(Number);
-        totalDays += endDay - startDay + 1;
+        totalDaysPerWeek += assignment.daysPerWeek || 1;
       });
 
       content += `
@@ -2105,9 +2249,11 @@ class AdvancedSchoolRoutineApp {
                         <strong>${teacher.name}</strong> - ${
         teacher.rank || ""
       }<br>
-                        <small>মোট সাপ্তাহিক দিন: ${totalDays}</small><br>
+                        <small>মোট সাপ্তাহিক দিন: ${totalDaysPerWeek}</small><br>
                         <small>বিষয়সমূহ: ${teacher.assignments
-                          .map((a) => `${a.subjectName} (${a.dayRange})`)
+                          .map(
+                            (a) => `${a.subjectName} (${a.daysPerWeek || 1}d/w)`
+                          )
                           .join(", ")}</small>
                     </div>
                 </div>
@@ -2130,7 +2276,7 @@ class AdvancedSchoolRoutineApp {
             subjects.push({
               subject: assignment.subjectName,
               teacher: teacher.name,
-              dayRange: assignment.dayRange,
+              daysPerWeek: assignment.daysPerWeek || 1,
             });
           }
         });
@@ -2142,7 +2288,7 @@ class AdvancedSchoolRoutineApp {
                         <strong>ক্লাস ${cls.grade}</strong><br>
                         <small>মোট বিষয়: ${subjects.length}</small><br>
                         <small>বিষয়সমূহ: ${subjects
-                          .map((s) => `${s.subject} (${s.dayRange})`)
+                          .map((s) => `${s.subject} (${s.daysPerWeek}d/w)`)
                           .join(", ")}</small>
                     </div>
                 </div>
