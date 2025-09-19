@@ -959,10 +959,21 @@ class AdvancedSchoolRoutineApp {
 
   createPrioritizedAssignmentQueue() {
     const queue = [];
+    const highPrioritySubjects = ["বাংলা", "ইংরেজি", "গণিত"];
 
     AppState.teachers.forEach((teacher) => {
       teacher.assignments.forEach((assignment) => {
-        const priority = this.calculateAssignmentPriority(assignment);
+        let priority = this.calculateAssignmentPriority(assignment);
+
+        // Boost priority for high-priority subjects
+        if (
+          highPrioritySubjects.some((sub) =>
+            assignment.subjectName.includes(sub)
+          )
+        ) {
+          priority += 1000; // Significantly higher priority
+        }
+
         queue.push({
           teacherId: teacher.id,
           teacherName: teacher.name,
@@ -1061,10 +1072,30 @@ class AdvancedSchoolRoutineApp {
       assignment.subjectName.includes(sub)
     );
 
-    if (isGroupSubject) {
-      periodsToConsider = periodsToConsider.filter(
+    // New logic: Prioritize 1st and 2nd periods for "বাংলা", "ইংরেজি", "গণিত"
+    const highPrioritySubjectsForEarlySlots = ["বাংলা", "ইংরেজি", "গণিত"];
+    const isHighPriorityForEarlySlots = highPrioritySubjectsForEarlySlots.some(
+      (sub) => assignment.subjectName.includes(sub)
+    );
+
+    let periodsToSearch = [];
+    if (isHighPriorityForEarlySlots) {
+      // Try 1st and 2nd periods first
+      periodsToSearch = ["১ম ঘন্টা", "২য় ঘন্টা"].filter((p) =>
+        periodsToConsider.includes(p)
+      );
+      // Then add other periods if needed
+      periodsToSearch = periodsToSearch.concat(
+        periodsToConsider.filter((p) => p !== "১ম ঘন্টা" && p !== "২য় ঘন্টা")
+      );
+    } else if (isGroupSubject) {
+      // Group subjects start from 3rd period
+      periodsToSearch = periodsToConsider.filter(
         (p) => p !== "১ম ঘন্টা" && p !== "২য় ঘন্টা"
       );
+    } else {
+      // All other subjects can use any period
+      periodsToSearch = periodsToConsider;
     }
 
     // Check if it's a day range or specific day
@@ -1076,9 +1107,9 @@ class AdvancedSchoolRoutineApp {
       // Handle range format (e.g., "1-3")
       const [startDay, endDay] = assignment.dayRange.split("-").map(Number);
 
-      for (const period of periodsToConsider) {
-        // Use filtered periods
+      for (const period of periodsToSearch) {
         let isSlotAvailable = true;
+        let currentPeriodSlots = [];
 
         // Check if this slot is available for all days in the range
         for (let dayIndex = startDay - 1; dayIndex < endDay; dayIndex++) {
@@ -1105,17 +1136,15 @@ class AdvancedSchoolRoutineApp {
             isSlotAvailable = false;
             break;
           }
+          currentPeriodSlots.push({
+            period: period,
+            day: DAYS[dayIndex],
+            dayIndex: dayIndex,
+          });
         }
 
         if (isSlotAvailable) {
-          // Add all days in range to the slot
-          for (let dayIndex = startDay - 1; dayIndex < endDay; dayIndex++) {
-            availableSlots.push({
-              period: period,
-              day: DAYS[dayIndex],
-              dayIndex: dayIndex,
-            });
-          }
+          availableSlots.push(...currentPeriodSlots);
         }
       }
     } else if (isSpecificDay) {
@@ -1123,8 +1152,7 @@ class AdvancedSchoolRoutineApp {
       const specificDayIndex = parseInt(assignment.dayRange) - 1; // 0-indexed
       const specificDay = DAYS[specificDayIndex];
 
-      for (const period of periodsToConsider) {
-        // Use filtered periods
+      for (const period of periodsToSearch) {
         if (
           !this.isTeacherBusyInSlot(
             assignment.teacherId,
@@ -1147,8 +1175,7 @@ class AdvancedSchoolRoutineApp {
       }
     } else {
       // Fallback for any days per week (though the options are now specific)
-      for (const period of periodsToConsider) {
-        // Use filtered periods
+      for (const period of periodsToSearch) {
         const availableDaysForPeriod = [];
 
         DAYS.forEach((day, dayIndex) => {
@@ -2302,7 +2329,8 @@ class AdvancedSchoolRoutineApp {
                                 </div>
                             </td>`;
           } else {
-            table += '<td class="empty-cell">ফাঁকা</td>';
+            // এখানে "ফাঁকা" দেখাবে না, যদি স্লট না থাকে তাহলে খালি থাকবে
+            table += "<td></td>";
           }
         }
       });
