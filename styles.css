@@ -802,3 +802,90 @@ body {
     color: black !important;
   }
 }
+
+/* Subject Dropdown Styles */
+.subject-dropdown-container {
+  position: relative;
+}
+
+.subject-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e0e6ed;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.subject-option {
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f3f4;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+}
+
+.subject-option:hover {
+  background-color: #f8f9fa;
+}
+
+.subject-option:last-child {
+  border-bottom: none;
+}
+
+/* Teacher Rank Styles */
+.teacher-rank {
+  color: #7f8c8d;
+  font-style: italic;
+  font-size: 0.9em;
+}
+
+/* Enhanced form control focus for dropdowns */
+.form-control:focus + .subject-dropdown {
+  border-color: #4caf50;
+}
+
+/* Slot content enhancements */
+.slot-teacher-rank {
+  opacity: 0.8;
+  font-size: 10px;
+  color: #95a5a6;
+  font-style: italic;
+}
+
+.slot-day-range {
+  opacity: 0.7;
+  font-size: 10px;
+  color: #bdc3c7;
+  margin-top: 2px;
+}
+
+/* Responsive enhancements for subject dropdown */
+@media (max-width: 768px) {
+  .subject-dropdown {
+    max-height: 150px;
+  }
+
+  .subject-option {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Print styles for new elements */
+@media print {
+  .subject-dropdown {
+    display: none !important;
+  }
+
+  .teacher-rank {
+    color: #666 !important;
+  }
+}

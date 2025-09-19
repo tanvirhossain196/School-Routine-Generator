@@ -208,33 +208,50 @@
                         <input type="text" class="form-control" id="teacherName" required>
                     </div>
 
+                    <div class="form-group">
+                        <label>Teacher Rank *</label>
+                        <select class="form-control" id="teacherRank" required>
+                            <option value="">Select Rank</option>
+                            <option value="প্রধান শিক্ষক">প্রধান শিক্ষক (Head Teacher)</option>
+                            <option value="সহকারী প্রধান শিক্ষক">সহকারী প্রধান শিক্ষক (Assistant Head Teacher)</option>
+                            <option value="সিনিয়র শিক্ষক">সিনিয়র শিক্ষক (Senior Teacher)</option>
+                            <option value="সহকারী শিক্ষক">সহকারী শিক্ষক (Assistant Teacher)</option>
+                            <option value="জুনিয়র শিক্ষক">জুনিয়র শিক্ষক (Junior Teacher)</option>
+                        </select>
+                    </div>
+
                     <div id="teacherSubjectsContainer">
                         <h4>Subject & Class Assignments</h4>
                         <div class="subject-assignment-group" data-assignment-id="0">
                             <div class="form-group">
                                 <label>Subject Name *</label>
-                                <input type="text" class="form-control subject-name" required>
+                                <div class="subject-dropdown-container">
+                                    <input type="text" class="form-control subject-name"
+                                        placeholder="Search or select subject..." required>
+                                    <div class="subject-dropdown" id="subjectDropdown0">
+                                        <!-- Options will be populated by JavaScript -->
+                                    </div>
+                                </div>
                             </div>
                             <div class="form-group">
-                                <label>Periods Per Week *</label>
-                                <input type="number" class="form-control subject-periods-per-week" value="5" min="1"
-                                    max="10" required>
+                                <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
+                                <select class="form-control day-range" required>
+                                    <option value="">Select day range</option>
+                                    <option value="1-2">1-2 (Sunday to Monday)</option>
+                                    <option value="1-3">1-3 (Sunday to Tuesday)</option>
+                                    <option value="1-4">1-4 (Sunday to Wednesday)</option>
+                                    <option value="1-5">1-5 (Sunday to Thursday)</option>
+                                    <option value="2-3">2-3 (Monday to Tuesday)</option>
+                                    <option value="2-4">2-4 (Monday to Wednesday)</option>
+                                    <option value="2-5">2-5 (Monday to Thursday)</option>
+                                    <option value="3-4">3-4 (Tuesday to Wednesday)</option>
+                                    <option value="3-5">3-5 (Tuesday to Thursday)</option>
+                                    <option value="4-5">4-5 (Wednesday to Thursday)</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label>Class Grade (6-10) *</label>
                                 <input type="number" class="form-control class-grade" min="6" max="10" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Class Section (A, B, C) *</label>
-                                <input type="text" class="form-control class-section" maxlength="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Room Number *</label>
-                                <input type="text" class="form-control room-number" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Building *</label>
-                                <input type="text" class="form-control building" required>
                             </div>
                             <button type="button" class="btn btn-danger remove-subject-assignment hidden">Remove
                                 Subject</button>

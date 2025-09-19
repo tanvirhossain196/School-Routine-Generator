@@ -41,6 +41,37 @@ const TIME_SLOTS = [
     "৩:২৫-৪:০০"
 ];
 
+// Predefined subjects from the routine image
+const PREDEFINED_SUBJECTS = [
+    "বাংলা ১ম",
+    "বাংলা ২য়",
+    "ইংরেজি ১ম",
+    "ইংরেজি ২য়",
+    "গণিত",
+    "সাধারণ গণিত",
+    "উচ্চতর গণিত",
+    "বিজ্ঞান",
+    "পদার্থ",
+    "রসায়ন",
+    "জীববিজ্ঞান",
+    "বাংলাদেশ ও বিশ্বপরিচয়",
+    "ইতিহাস",
+    "ভূগোল",
+    "পৌরনীতি",
+    "অর্থনীতি",
+    "ইসলাম ধর্ম",
+    "হিন্দু ধর্ম",
+    "খ্রিস্ট ধর্ম",
+    "বৌদ্ধ ধর্ম",
+    "কৃষি শিক্ষা",
+    "গার্হস্থ্য বিজ্ঞান",
+    "তথ্য ও যোগাযোগ প্রযুক্তি",
+    "কম্পিউটার",
+    "শারীরিক শিক্ষা",
+    "চারু ও কারুকলা",
+    "সংগীত"
+];
+
 const generateUniqueId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
 
 // Advanced School Routine Management System
@@ -130,13 +161,12 @@ class AdvancedSchoolRoutineApp {
 
     AppState.teachers.forEach((teacher) => {
       teacher.assignments.forEach((assignment) => {
-        const classKey = `${assignment.classGrade}-${assignment.classSection}`;
+        const classKey = assignment.classGrade.toString();
 
         if (!classesMap.has(classKey)) {
           classesMap.set(classKey, {
             id: generateUniqueId(),
             grade: assignment.classGrade,
-            section: assignment.classSection,
             studentCount: 40,
             classTeacher: null,
           });
@@ -163,19 +193,26 @@ class AdvancedSchoolRoutineApp {
           subjectsMap.set(assignment.subjectName.toLowerCase(), {
             id: generateUniqueId(),
             name: assignment.subjectName,
-            periodsPerWeek: assignment.periodsPerWeek,
+            dayRange: assignment.dayRange,
             color: colors[Math.floor(Math.random() * colors.length)],
           });
         }
 
-        const roomKey = `${assignment.roomNumber.toLowerCase()}-${assignment.building.toLowerCase()}`;
+        // Create virtual rooms based on class and subject
+        const roomKey = `room-${
+          assignment.classGrade
+        }-${assignment.subjectName.toLowerCase()}`;
         if (!roomsMap.has(roomKey)) {
           roomsMap.set(roomKey, {
             id: generateUniqueId(),
-            name: assignment.roomNumber,
-            building: assignment.building,
+            name: `Room ${assignment.classGrade}${assignment.subjectName.charAt(
+              0
+            )}`,
+            building: "Main Building",
             capacity: 40,
-            fullName: `${assignment.roomNumber} (${assignment.building})`,
+            fullName: `Room ${
+              assignment.classGrade
+            }${assignment.subjectName.charAt(0)} (Main Building)`,
           });
         }
       });
@@ -189,7 +226,7 @@ class AdvancedSchoolRoutineApp {
   initializeTimetableStructures() {
     // Initialize class-wise timetable
     AppState.derivedClasses.forEach((cls) => {
-      const classKey = `${cls.grade}-${cls.section}`;
+      const classKey = cls.grade.toString();
       if (!AppState.timetable.classWise[classKey]) {
         AppState.timetable.classWise[classKey] = {};
       }
@@ -240,14 +277,12 @@ class AdvancedSchoolRoutineApp {
     AppState.teachers.forEach((teacher) => {
       AppState.teacherSlotAssignments[teacher.id] = {};
       teacher.assignments.forEach((assignment) => {
-        const key = `${assignment.subjectName}-${assignment.classGrade}-${assignment.classSection}`;
+        const key = `${assignment.subjectName}-${assignment.classGrade}`;
         AppState.teacherSlotAssignments[teacher.id][key] = {
           assignedSlot: null,
           subjectName: assignment.subjectName,
-          classKey: `${assignment.classGrade}-${assignment.classSection}`,
-          roomNumber: assignment.roomNumber,
-          building: assignment.building,
-          periodsPerWeek: assignment.periodsPerWeek,
+          classKey: assignment.classGrade.toString(),
+          dayRange: assignment.dayRange,
           assignedDays: 0,
         };
       });
@@ -350,7 +385,7 @@ class AdvancedSchoolRoutineApp {
       AppState.derivedRooms.length;
   }
 
-  // Enhanced Teacher Management with Edit/Update functionality
+  // Enhanced Teacher Management with subject dropdown
   resetTeacherModal() {
     const teacherForm = document.getElementById("teacherForm");
     teacherForm.reset();
@@ -369,31 +404,90 @@ class AdvancedSchoolRoutineApp {
             <div class="subject-assignment-group" data-assignment-id="0">
                 <div class="form-group">
                     <label>Subject Name *</label>
-                    <input type="text" class="form-control subject-name" required>
+                    <div class="subject-dropdown-container">
+                        <input type="text" class="form-control subject-name" placeholder="Search or select subject..." required>
+                        <div class="subject-dropdown" id="subjectDropdown0">
+                            <!-- Options will be populated by JavaScript -->
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Periods Per Week *</label>
-                    <input type="number" class="form-control subject-periods-per-week" value="5" min="1" max="10" required>
+                    <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
+                    <select class="form-control day-range" required>
+                        <option value="">Select day range</option>
+                        <option value="1-2">1-2 (Sunday to Monday)</option>
+                        <option value="1-3">1-3 (Sunday to Tuesday)</option>
+                        <option value="1-4">1-4 (Sunday to Wednesday)</option>
+                        <option value="1-5">1-5 (Sunday to Thursday)</option>
+                        <option value="2-3">2-3 (Monday to Tuesday)</option>
+                        <option value="2-4">2-4 (Monday to Wednesday)</option>
+                        <option value="2-5">2-5 (Monday to Thursday)</option>
+                        <option value="3-4">3-4 (Tuesday to Wednesday)</option>
+                        <option value="3-5">3-5 (Tuesday to Thursday)</option>
+                        <option value="4-5">4-5 (Wednesday to Thursday)</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Class Grade (6-10) *</label>
                     <input type="number" class="form-control class-grade" min="6" max="10" required>
                 </div>
-                <div class="form-group">
-                    <label>Class Section (A, B, C) *</label>
-                    <input type="text" class="form-control class-section" maxlength="1" required>
-                </div>
-                <div class="form-group">
-                    <label>Room Number *</label>
-                    <input type="text" class="form-control room-number" required>
-                </div>
-                <div class="form-group">
-                    <label>Building *</label>
-                    <input type="text" class="form-control building" required>
-                </div>
                 <button type="button" class="btn btn-danger remove-subject-assignment hidden">Remove Subject</button>
             </div>
         `;
+
+    this.setupSubjectDropdown(0);
+  }
+
+  setupSubjectDropdown(assignmentId) {
+    const subjectInput = document.querySelector(
+      `[data-assignment-id="${assignmentId}"] .subject-name`
+    );
+    const dropdown = document.getElementById(`subjectDropdown${assignmentId}`);
+
+    if (!subjectInput || !dropdown) return;
+
+    // Populate dropdown with predefined subjects
+    dropdown.innerHTML = PREDEFINED_SUBJECTS.map(
+      (subject) =>
+        `<div class="subject-option" data-value="${subject}">${subject}</div>`
+    ).join("");
+
+    // Handle input events
+    subjectInput.addEventListener("input", (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const options = dropdown.querySelectorAll(".subject-option");
+
+      options.forEach((option) => {
+        const text = option.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+          option.style.display = "block";
+        } else {
+          option.style.display = "none";
+        }
+      });
+
+      dropdown.style.display = "block";
+    });
+
+    // Handle focus events
+    subjectInput.addEventListener("focus", () => {
+      dropdown.style.display = "block";
+    });
+
+    // Handle option selection
+    dropdown.addEventListener("click", (e) => {
+      if (e.target.classList.contains("subject-option")) {
+        subjectInput.value = e.target.dataset.value;
+        dropdown.style.display = "none";
+      }
+    });
+
+    // Hide dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!subjectInput.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.style.display = "none";
+      }
+    });
   }
 
   addSubjectAssignmentGroup() {
@@ -408,27 +502,32 @@ class AdvancedSchoolRoutineApp {
     newGroup.innerHTML = `
             <div class="form-group">
                 <label>Subject Name *</label>
-                <input type="text" class="form-control subject-name" required>
+                <div class="subject-dropdown-container">
+                    <input type="text" class="form-control subject-name" placeholder="Search or select subject..." required>
+                    <div class="subject-dropdown" id="subjectDropdown${newAssignmentId}">
+                        <!-- Options will be populated by JavaScript -->
+                    </div>
+                </div>
             </div>
             <div class="form-group">
-                <label>Periods Per Week *</label>
-                <input type="number" class="form-control subject-periods-per-week" value="5" min="1" max="10" required>
+                <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
+                <select class="form-control day-range" required>
+                    <option value="">Select day range</option>
+                    <option value="1-2">1-2 (Sunday to Monday)</option>
+                    <option value="1-3">1-3 (Sunday to Tuesday)</option>
+                    <option value="1-4">1-4 (Sunday to Wednesday)</option>
+                    <option value="1-5">1-5 (Sunday to Thursday)</option>
+                    <option value="2-3">2-3 (Monday to Tuesday)</option>
+                    <option value="2-4">2-4 (Monday to Wednesday)</option>
+                    <option value="2-5">2-5 (Monday to Thursday)</option>
+                    <option value="3-4">3-4 (Tuesday to Wednesday)</option>
+                    <option value="3-5">3-5 (Tuesday to Thursday)</option>
+                    <option value="4-5">4-5 (Wednesday to Thursday)</option>
+                </select>
             </div>
             <div class="form-group">
                 <label>Class Grade (6-10) *</label>
                 <input type="number" class="form-control class-grade" min="6" max="10" required>
-            </div>
-            <div class="form-group">
-                <label>Class Section (A, B, C) *</label>
-                <input type="text" class="form-control class-section" maxlength="1" required>
-            </div>
-            <div class="form-group">
-                <label>Room Number *</label>
-                <input type="text" class="form-control room-number" required>
-            </div>
-            <div class="form-group">
-                <label>Building *</label>
-                <input type="text" class="form-control building" required>
             </div>
             <button type="button" class="btn btn-danger remove-subject-assignment">Remove Subject</button>
         `;
@@ -441,6 +540,7 @@ class AdvancedSchoolRoutineApp {
         this.updateRemoveButtonVisibility();
       });
 
+    this.setupSubjectDropdown(newAssignmentId);
     this.updateRemoveButtonVisibility();
   }
 
@@ -468,8 +568,15 @@ class AdvancedSchoolRoutineApp {
     const teacherId = teacherForm.dataset.teacherId;
 
     const teacherNameInput = document.getElementById("teacherName");
+    const teacherRankInput = document.getElementById("teacherRank");
+
     if (!teacherNameInput.value.trim()) {
       this.showAlert("danger", "Teacher name cannot be empty.");
+      return;
+    }
+
+    if (!teacherRankInput.value.trim()) {
+      this.showAlert("danger", "Please select teacher rank.");
       return;
     }
 
@@ -478,39 +585,22 @@ class AdvancedSchoolRoutineApp {
 
     document.querySelectorAll(".subject-assignment-group").forEach((group) => {
       const subjectName = group.querySelector(".subject-name").value.trim();
-      const periodsPerWeek = parseInt(
-        group.querySelector(".subject-periods-per-week").value
-      );
+      const dayRange = group.querySelector(".day-range").value;
       const classGrade = parseInt(group.querySelector(".class-grade").value);
-      const classSection = group
-        .querySelector(".class-section")
-        .value.trim()
-        .toUpperCase();
-      const roomNumber = group.querySelector(".room-number").value.trim();
-      const building = group.querySelector(".building").value.trim();
 
-      if (
-        !subjectName ||
-        isNaN(periodsPerWeek) ||
-        !classGrade ||
-        !classSection ||
-        !roomNumber ||
-        !building
-      ) {
+      if (!subjectName || !dayRange || !classGrade) {
         this.showAlert(
           "danger",
           "Please fill all assignment fields for each subject."
         );
         isValid = false;
+        return;
       }
 
       assignments.push({
         subjectName,
-        periodsPerWeek,
+        dayRange,
         classGrade,
-        classSection,
-        roomNumber,
-        building,
       });
     });
 
@@ -526,6 +616,7 @@ class AdvancedSchoolRoutineApp {
         AppState.teachers[teacherIndex] = {
           ...AppState.teachers[teacherIndex],
           name: teacherNameInput.value.trim(),
+          rank: teacherRankInput.value.trim(),
           assignments: assignments,
         };
         this.clearGeneratedRoutines();
@@ -539,6 +630,7 @@ class AdvancedSchoolRoutineApp {
       const teacherData = {
         id: generateUniqueId(),
         name: teacherNameInput.value.trim(),
+        rank: teacherRankInput.value.trim(),
         assignments: assignments,
       };
 
@@ -565,8 +657,8 @@ class AdvancedSchoolRoutineApp {
         .map(
           (assignment) => `
                 <li>
-                    <strong>${assignment.subjectName}</strong> for Class ${assignment.classGrade}-${assignment.classSection}
-                    in Room ${assignment.roomNumber} (${assignment.building}) - ${assignment.periodsPerWeek} periods/week
+                    <strong>${assignment.subjectName}</strong> for Class ${assignment.classGrade}
+                    - Days: ${assignment.dayRange}
                 </li>
             `
         )
@@ -576,7 +668,7 @@ class AdvancedSchoolRoutineApp {
       teacherElement.className = "data-item";
       teacherElement.innerHTML = `
                 <div class="data-info">
-                    <strong>${teacher.name}</strong><br>
+                    <strong>${teacher.name}</strong> - <span class="teacher-rank">${teacher.rank}</span><br>
                     <small>Assignments:</small>
                     <ul>${assignmentsHtml}</ul>
                 </div>
@@ -602,6 +694,7 @@ class AdvancedSchoolRoutineApp {
       "Update Teacher";
 
     document.getElementById("teacherName").value = teacher.name;
+    document.getElementById("teacherRank").value = teacher.rank || "";
 
     const subjectsContainer = document.getElementById(
       "teacherSubjectsContainer"
@@ -616,31 +709,38 @@ class AdvancedSchoolRoutineApp {
         firstGroup.innerHTML = `
                     <div class="form-group">
                         <label>Subject Name *</label>
-                        <input type="text" class="form-control subject-name" value="${assignment.subjectName}" required>
+                        <div class="subject-dropdown-container">
+                            <input type="text" class="form-control subject-name" value="${assignment.subjectName}" required>
+                            <div class="subject-dropdown" id="subjectDropdown0">
+                                <!-- Options will be populated by JavaScript -->
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>Periods Per Week *</label>
-                        <input type="number" class="form-control subject-periods-per-week" value="${assignment.periodsPerWeek}" min="1" max="10" required>
+                        <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
+                        <select class="form-control day-range" required>
+                            <option value="">Select day range</option>
+                            <option value="1-2">1-2 (Sunday to Monday)</option>
+                            <option value="1-3">1-3 (Sunday to Tuesday)</option>
+                            <option value="1-4">1-4 (Sunday to Wednesday)</option>
+                            <option value="1-5">1-5 (Sunday to Thursday)</option>
+                            <option value="2-3">2-3 (Monday to Tuesday)</option>
+                            <option value="2-4">2-4 (Monday to Wednesday)</option>
+                            <option value="2-5">2-5 (Monday to Thursday)</option>
+                            <option value="3-4">3-4 (Tuesday to Wednesday)</option>
+                            <option value="3-5">3-5 (Tuesday to Thursday)</option>
+                            <option value="4-5">4-5 (Wednesday to Thursday)</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Class Grade (6-10) *</label>
                         <input type="number" class="form-control class-grade" value="${assignment.classGrade}" min="6" max="10" required>
                     </div>
-                    <div class="form-group">
-                        <label>Class Section (A, B, C) *</label>
-                        <input type="text" class="form-control class-section" value="${assignment.classSection}" maxlength="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Room Number *</label>
-                        <input type="text" class="form-control room-number" value="${assignment.roomNumber}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Building *</label>
-                        <input type="text" class="form-control building" value="${assignment.building}" required>
-                    </div>
                     <button type="button" class="btn btn-danger remove-subject-assignment hidden">Remove Subject</button>
                 `;
         subjectsContainer.appendChild(firstGroup);
+        firstGroup.querySelector(".day-range").value = assignment.dayRange;
+        this.setupSubjectDropdown(0);
       } else {
         const newGroup = document.createElement("div");
         newGroup.className = "subject-assignment-group";
@@ -648,31 +748,38 @@ class AdvancedSchoolRoutineApp {
         newGroup.innerHTML = `
                     <div class="form-group">
                         <label>Subject Name *</label>
-                        <input type="text" class="form-control subject-name" value="${assignment.subjectName}" required>
+                        <div class="subject-dropdown-container">
+                            <input type="text" class="form-control subject-name" value="${assignment.subjectName}" required>
+                            <div class="subject-dropdown" id="subjectDropdown${index}">
+                                <!-- Options will be populated by JavaScript -->
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>Periods Per Week *</label>
-                        <input type="number" class="form-control subject-periods-per-week" value="${assignment.periodsPerWeek}" min="1" max="10" required>
+                        <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
+                        <select class="form-control day-range" required>
+                            <option value="">Select day range</option>
+                            <option value="1-2">1-2 (Sunday to Monday)</option>
+                            <option value="1-3">1-3 (Sunday to Tuesday)</option>
+                            <option value="1-4">1-4 (Sunday to Wednesday)</option>
+                            <option value="1-5">1-5 (Sunday to Thursday)</option>
+                            <option value="2-3">2-3 (Monday to Tuesday)</option>
+                            <option value="2-4">2-4 (Monday to Wednesday)</option>
+                            <option value="2-5">2-5 (Monday to Thursday)</option>
+                            <option value="3-4">3-4 (Tuesday to Wednesday)</option>
+                            <option value="3-5">3-5 (Tuesday to Thursday)</option>
+                            <option value="4-5">4-5 (Wednesday to Thursday)</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Class Grade (6-10) *</label>
                         <input type="number" class="form-control class-grade" value="${assignment.classGrade}" min="6" max="10" required>
                     </div>
-                    <div class="form-group">
-                        <label>Class Section (A, B, C) *</label>
-                        <input type="text" class="form-control class-section" value="${assignment.classSection}" maxlength="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Room Number *</label>
-                        <input type="text" class="form-control room-number" value="${assignment.roomNumber}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Building *</label>
-                        <input type="text" class="form-control building" value="${assignment.building}" required>
-                    </div>
                     <button type="button" class="btn btn-danger remove-subject-assignment">Remove Subject</button>
                 `;
         subjectsContainer.appendChild(newGroup);
+        newGroup.querySelector(".day-range").value = assignment.dayRange;
+        this.setupSubjectDropdown(index);
 
         newGroup
           .querySelector(".remove-subject-assignment")
@@ -701,7 +808,7 @@ class AdvancedSchoolRoutineApp {
     }
   }
 
-  // Enhanced Conflict-Free Timetable Generation
+  // Enhanced Conflict-Free Timetable Generation with Day Range Support
   generateAdvancedTimetable() {
     if (AppState.teachers.length === 0) {
       this.showAlert(
@@ -717,9 +824,9 @@ class AdvancedSchoolRoutineApp {
 
     const steps = [
       "Initializing conflict-free scheduling system...",
-      "Analyzing room availability and teacher schedules...",
+      "Analyzing day ranges and teacher schedules...",
       "Implementing advanced conflict detection algorithms...",
-      "Assigning fixed slots with zero conflicts...",
+      "Assigning time slots based on day ranges...",
       "Generating comprehensive schedule views...",
       "Validating complete routine for conflicts...",
     ];
@@ -763,7 +870,7 @@ class AdvancedSchoolRoutineApp {
     } else {
       this.showAlert(
         "warning",
-        "Could not generate completely conflict-free routine. Please check teacher and room assignments."
+        "Could not generate completely conflict-free routine. Please check teacher assignments."
       );
     }
   }
@@ -775,10 +882,7 @@ class AdvancedSchoolRoutineApp {
     const assignmentQueue = this.createPrioritizedAssignmentQueue();
 
     for (const assignment of assignmentQueue) {
-      const success = this.assignSubjectWithConflictPrevention(
-        assignment,
-        actualPeriods
-      );
+      const success = this.assignSubjectWithDayRange(assignment, actualPeriods);
       if (!success) {
         console.warn(
           `Could not assign ${assignment.subjectName} for class ${assignment.classKey}`
@@ -799,13 +903,11 @@ class AdvancedSchoolRoutineApp {
         queue.push({
           teacherId: teacher.id,
           teacherName: teacher.name,
+          teacherRank: teacher.rank,
           subjectName: assignment.subjectName,
-          classKey: `${assignment.classGrade}-${assignment.classSection}`,
+          classKey: assignment.classGrade.toString(),
           classGrade: assignment.classGrade,
-          classSection: assignment.classSection,
-          roomNumber: assignment.roomNumber,
-          building: assignment.building,
-          periodsPerWeek: assignment.periodsPerWeek,
+          dayRange: assignment.dayRange,
           priority: priority,
         });
       });
@@ -816,7 +918,11 @@ class AdvancedSchoolRoutineApp {
 
   calculateAssignmentPriority(assignment) {
     let priority = 0;
-    priority += assignment.periodsPerWeek * 10;
+
+    // Calculate number of days from range
+    const [startDay, endDay] = assignment.dayRange.split("-").map(Number);
+    const dayCount = endDay - startDay + 1;
+    priority += dayCount * 10;
 
     const coreSubjects = [
       "গণিত",
@@ -835,8 +941,8 @@ class AdvancedSchoolRoutineApp {
     return priority;
   }
 
-  assignSubjectWithConflictPrevention(assignment, actualPeriods) {
-    const availableSlots = this.findAllAvailableSlots(
+  assignSubjectWithDayRange(assignment, actualPeriods) {
+    const availableSlots = this.findAvailableSlotsForDayRange(
       assignment,
       actualPeriods
     );
@@ -846,22 +952,19 @@ class AdvancedSchoolRoutineApp {
     }
 
     const bestSlot = availableSlots[0];
-    return this.assignSubjectToFixedSlotWithConflictCheck(assignment, bestSlot);
+    return this.assignSubjectToSlotWithDayRange(assignment, bestSlot);
   }
 
-  findAllAvailableSlots(assignment, actualPeriods) {
+  findAvailableSlotsForDayRange(assignment, actualPeriods) {
     const availableSlots = [];
     const classKey = assignment.classKey;
-    const roomKey = `${assignment.roomNumber.toLowerCase()}-${assignment.building.toLowerCase()}`;
+    const [startDay, endDay] = assignment.dayRange.split("-").map(Number);
 
     for (const period of actualPeriods) {
       let isSlotAvailable = true;
 
-      for (
-        let dayIndex = 0;
-        dayIndex < Math.min(assignment.periodsPerWeek, DAYS.length);
-        dayIndex++
-      ) {
+      // Check if this slot is available for all days in the range
+      for (let dayIndex = startDay - 1; dayIndex < endDay; dayIndex++) {
         const day = DAYS[dayIndex];
 
         if (this.isTeacherBusyInSlot(assignment.teacherId, day, period)) {
@@ -870,11 +973,6 @@ class AdvancedSchoolRoutineApp {
         }
 
         if (AppState.timetable.classWise[classKey]?.[day]?.[period]) {
-          isSlotAvailable = false;
-          break;
-        }
-
-        if (this.isRoomBusyInSlot(roomKey, day, period)) {
           isSlotAvailable = false;
           break;
         }
@@ -888,24 +986,6 @@ class AdvancedSchoolRoutineApp {
     return availableSlots;
   }
 
-  isRoomBusyInSlot(roomKey, day, period) {
-    if (AppState.roomOccupancy[day]?.[period]?.has(roomKey)) {
-      return true;
-    }
-
-    for (const classKey of Object.keys(AppState.timetable.classWise)) {
-      const slot = AppState.timetable.classWise[classKey]?.[day]?.[period];
-      if (slot) {
-        const slotRoomKey = `${slot.room.toLowerCase()}-${slot.building.toLowerCase()}`;
-        if (slotRoomKey === roomKey) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
   isTeacherBusyInSlot(teacherId, day, period) {
     for (const classKey of Object.keys(AppState.timetable.classWise)) {
       const slot = AppState.timetable.classWise[classKey]?.[day]?.[period];
@@ -916,32 +996,25 @@ class AdvancedSchoolRoutineApp {
     return false;
   }
 
-  assignSubjectToFixedSlotWithConflictCheck(assignment, slot) {
+  assignSubjectToSlotWithDayRange(assignment, slot) {
     const classKey = assignment.classKey;
-    const roomKey = `${assignment.roomNumber.toLowerCase()}-${assignment.building.toLowerCase()}`;
+    const [startDay, endDay] = assignment.dayRange.split("-").map(Number);
 
-    const room = AppState.derivedRooms.find(
-      (r) =>
-        r.name.toLowerCase() === assignment.roomNumber.toLowerCase() &&
-        r.building.toLowerCase() === assignment.building.toLowerCase()
-    );
     const subject = AppState.derivedSubjects.find(
       (s) => s.name === assignment.subjectName
     );
 
-    if (!room || !subject) {
-      console.error(`Room or subject not found for assignment:`, assignment);
+    if (!subject) {
+      console.error(`Subject not found for assignment:`, assignment);
       return false;
     }
 
-    const daysToAssign = Math.min(assignment.periodsPerWeek, DAYS.length);
-
-    for (let i = 0; i < daysToAssign; i++) {
-      const day = DAYS[i];
+    // Assign to all days in the range
+    for (let dayIndex = startDay - 1; dayIndex < endDay; dayIndex++) {
+      const day = DAYS[dayIndex];
 
       if (
         this.isTeacherBusyInSlot(assignment.teacherId, day, slot.period) ||
-        this.isRoomBusyInSlot(roomKey, day, slot.period) ||
         AppState.timetable.classWise[classKey]?.[day]?.[slot.period]
       ) {
         console.error(
@@ -961,32 +1034,12 @@ class AdvancedSchoolRoutineApp {
         classId: `class-${classKey}`,
         subjectId: subject.id,
         teacherId: assignment.teacherId,
-        roomId: room.id,
         subject: assignment.subjectName,
         teacher: assignment.teacherName,
-        room: assignment.roomNumber,
-        building: assignment.building,
-      };
-
-      if (!AppState.roomOccupancy[day]) {
-        AppState.roomOccupancy[day] = {};
-      }
-      if (!AppState.roomOccupancy[day][slot.period]) {
-        AppState.roomOccupancy[day][slot.period] = new Set();
-      }
-      AppState.roomOccupancy[day][slot.period].add(roomKey);
-    }
-
-    const key = `${assignment.subjectName}-${assignment.classGrade}-${assignment.classSection}`;
-    if (AppState.teacherSlotAssignments[assignment.teacherId]) {
-      AppState.teacherSlotAssignments[assignment.teacherId][key] = {
-        assignedSlot: slot,
-        subjectName: assignment.subjectName,
-        classKey: assignment.classKey,
-        roomNumber: assignment.roomNumber,
-        building: assignment.building,
-        periodsPerWeek: assignment.periodsPerWeek,
-        assignedDays: daysToAssign,
+        teacherRank: assignment.teacherRank,
+        room: `Room ${classKey}${assignment.subjectName.charAt(0)}`,
+        building: "Main Building",
+        dayRange: assignment.dayRange,
       };
     }
 
@@ -1055,7 +1108,7 @@ class AdvancedSchoolRoutineApp {
     this.initializeTimetableStructures();
   }
 
-  // FIXED: Enhanced Timetable Rendering - Professional Full Schedule
+  // Enhanced Timetable Rendering
   renderTimetable() {
     const container = document.getElementById("timetableGrid");
     container.innerHTML = "";
@@ -1113,7 +1166,7 @@ class AdvancedSchoolRoutineApp {
             </div>
         `;
 
-    // Add hover effects
+    // Add hover effects and event listeners
     selectorDiv.querySelectorAll("label").forEach((label) => {
       label.addEventListener("mouseenter", () => {
         label.style.backgroundColor = "rgba(76, 175, 80, 0.1)";
@@ -1127,15 +1180,12 @@ class AdvancedSchoolRoutineApp {
         }
       });
 
-      // Set active state for checked radio
       const radio = label.querySelector('input[type="radio"]');
       radio.addEventListener("change", () => {
-        // Reset all labels
         selectorDiv.querySelectorAll("label").forEach((l) => {
           l.style.backgroundColor = "transparent";
           l.style.borderColor = "transparent";
         });
-        // Set active label
         if (radio.checked) {
           label.style.backgroundColor = "rgba(76, 175, 80, 0.15)";
           label.style.borderColor = "#4caf50";
@@ -1143,7 +1193,6 @@ class AdvancedSchoolRoutineApp {
         this.renderTimetable();
       });
 
-      // Set initial state
       if (radio.checked) {
         label.style.backgroundColor = "rgba(76, 175, 80, 0.15)";
         label.style.borderColor = "#4caf50";
@@ -1153,7 +1202,6 @@ class AdvancedSchoolRoutineApp {
     container.appendChild(selectorDiv);
   }
 
-  // FIXED: Professional Full Schedule View - Compact and Clean
   renderProfessionalFullScheduleView(container) {
     container.style.gridTemplateColumns = "1fr";
 
@@ -1177,14 +1225,13 @@ class AdvancedSchoolRoutineApp {
                 <p style="color: #7f8c8d; font-size: 16px; margin-bottom: 15px;">
                     নবীনগর, ব্রাহ্মণবাড়িয়া - সাপ্তাহিক ক্লাস রুটিন
                 </p>
-                <div style="display: inline-block; background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 8px 20px; border-radius: 25px; font-weight: 600; font-size: 14px;">
+                < style="display: inline-block; background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 8px 20px; border-radius: 25px; font-weight: 600; font-size: 14px;">
                     ✓ সম্পূর্ণ দ্বন্দ্ব মুক্ত সিস্টেম
                 </div>
-            </div>
         `;
     fullScheduleContainer.appendChild(headerSection);
 
-    // FIXED: Professional table with proper structure
+    // Professional table with proper structure
     const tableContainer = document.createElement("div");
     tableContainer.style.cssText = `
             overflow-x: auto;
@@ -1318,7 +1365,6 @@ class AdvancedSchoolRoutineApp {
           const slots = AppState.timetable.fullSchedule[day]?.[period] || [];
 
           if (slots.length > 0) {
-            // FIXED: Compact display - show all slots in same cell
             const slotsHtml = slots
               .map((slot, slotIndex) => {
                 const subject = AppState.derivedSubjects.find(
@@ -1327,27 +1373,32 @@ class AdvancedSchoolRoutineApp {
                 const bgColor = subject?.color || "#4caf50";
 
                 return `
-                                <div style="
-                                    background: linear-gradient(135deg, ${bgColor}15, ${bgColor}25);
-                                    border-left: 3px solid ${bgColor};
-                                    border-radius: 4px;
-                                    padding: 4px 6px;
-                                    margin: ${slotIndex > 0 ? "3px" : "0"} 0;
-                                    font-size: 11px;
-                                    line-height: 1.2;
-                                    text-align: left;
-                                ">
-                                    <div style="font-weight: 600; color: #2c3e50;">${
-                                      slot.subject
-                                    }</div>
-                                    <div style="color: #34495e;">ক্লাস ${
-                                      slot.classKey
-                                    }</div>
-                                    <div style="color: #7f8c8d; font-size: 10px;">${
-                                      slot.teacher
-                                    }</div>
-                                </div>
-                            `;
+                                    <div style="
+                                        background: linear-gradient(135deg, ${bgColor}15, ${bgColor}25);
+                                        border-left: 3px solid ${bgColor};
+                                        border-radius: 4px;
+                                        padding: 4px 6px;
+                                        margin: ${
+                                          slotIndex > 0 ? "3px" : "0"
+                                        } 0;
+                                        font-size: 11px;
+                                        line-height: 1.2;
+                                        text-align: left;
+                                    ">
+                                        <div style="font-weight: 600; color: #2c3e50;">${
+                                          slot.subject
+                                        }</div>
+                                        <div style="color: #34495e;">ক্লাস ${
+                                          slot.classKey
+                                        }</div>
+                                        <div style="color: #7f8c8d; font-size: 10px;">${
+                                          slot.teacher
+                                        }</div>
+                                        <div style="color: #95a5a6; font-size: 9px;">${
+                                          slot.teacherRank || ""
+                                        }</div>
+                                    </div>
+                                `;
               })
               .join("");
 
@@ -1359,6 +1410,8 @@ class AdvancedSchoolRoutineApp {
                         `;
           }
         }
+
+        dayRow.appendChild(periodCell);
       });
 
       tbody.appendChild(dayRow);
@@ -1433,7 +1486,7 @@ class AdvancedSchoolRoutineApp {
       : AppState.derivedClasses;
 
     classesToDisplay.forEach((classData) => {
-      const classKey = `${classData.grade}-${classData.section}`;
+      const classKey = classData.grade.toString();
       this.addClassHeader(container, classData);
 
       DAYS.forEach((day) => {
@@ -1469,7 +1522,7 @@ class AdvancedSchoolRoutineApp {
     classHeader.style.marginTop = "10px";
     classHeader.style.color = "white";
     classHeader.style.fontWeight = "bold";
-    classHeader.textContent = `ক্লাস ${classData.grade}-${classData.section} (দ্বন্দ্ব মুক্ত)`;
+    classHeader.textContent = `ক্লাস ${classData.grade} (দ্বন্দ্ব মুক্ত)`;
     container.appendChild(classHeader);
   }
 
@@ -1482,7 +1535,9 @@ class AdvancedSchoolRoutineApp {
     teacherHeader.style.marginTop = "10px";
     teacherHeader.style.color = "white";
     teacherHeader.style.fontWeight = "bold";
-    teacherHeader.textContent = `শিক্ষক: ${teacher.name} (দ্বন্দ্ব মুক্ত)`;
+    teacherHeader.textContent = `শিক্ষক: ${teacher.name} - ${
+      teacher.rank || ""
+    } (দ্বন্দ্ব মুক্ত)`;
     container.appendChild(teacherHeader);
   }
 
@@ -1519,7 +1574,15 @@ class AdvancedSchoolRoutineApp {
                     <div class="slot-content">
                         <div class="slot-subject">${slotData.subject}</div>
                         <div class="slot-teacher">${slotData.teacher}</div>
-                        <div class="slot-room">${slotData.room} (${slotData.building})</div>
+                        <div class="slot-teacher-rank">${
+                          slotData.teacherRank || ""
+                        }</div>
+                        <div class="slot-room">${slotData.room} (${
+          slotData.building
+        })</div>
+                        <div class="slot-day-range">Days: ${
+                          slotData.dayRange
+                        }</div>
                     </div>
                 `;
       } else {
@@ -1556,6 +1619,7 @@ class AdvancedSchoolRoutineApp {
                         <div class="slot-subject">${slotData.subject}</div>
                         <div class="slot-class">ক্লাস ${slotData.classKey}</div>
                         <div class="slot-room">${slotData.room} (${slotData.building})</div>
+                        <div class="slot-day-range">Days: ${slotData.dayRange}</div>
                     </div>
                 `;
       } else {
@@ -1580,8 +1644,7 @@ class AdvancedSchoolRoutineApp {
                     ✅ সম্পূর্ণ দ্বন্দ্ব মুক্ত রুটিন! 
                     <ul style="margin: 10px 0; padding-left: 20px;">
                         <li>কোনো শিক্ষক একই সময়ে দুটি ক্লাসে নেই</li>
-                        <li>কোনো রুম একই সময়ে দুটি ক্লাসে ব্যবহৃত হচ্ছে না</li>
-                        <li>প্রতিটি বিষয় নির্ধারিত সময়ে সব দিন একই স্লটে</li>
+                        <li>প্রতিটি বিষয় নির্ধারিত দিনের রেঞ্জে সঠিকভাবে বিতরণ</li>
                         <li>উন্নত অ্যালগরিদম দিয়ে যাচাইকৃত</li>
                     </ul>
                 </div>
@@ -1610,7 +1673,6 @@ class AdvancedSchoolRoutineApp {
     for (const day of DAYS) {
       for (const period of PERIODS.filter((p) => p !== "বিরতি")) {
         const teacherAssignments = new Map();
-        const roomAssignments = new Map();
 
         Object.keys(AppState.timetable.classWise).forEach((classKey) => {
           const slot = AppState.timetable.classWise[classKey]?.[day]?.[period];
@@ -1629,23 +1691,6 @@ class AdvancedSchoolRoutineApp {
               }
             } else {
               teacherAssignments.set(slot.teacherId, classKey);
-            }
-
-            const roomKey = `${slot.room.toLowerCase()}-${slot.building.toLowerCase()}`;
-            if (roomAssignments.has(roomKey)) {
-              const conflictKey = `room-${roomKey}-${day}-${period}`;
-              if (!conflictSet.has(conflictKey)) {
-                conflicts.push(
-                  `রুম "${slot.room} (${
-                    slot.building
-                  })" একই সময়ে দুটি ক্লাসের জন্য বুক: ${day}, ${period} (ক্লাস ${roomAssignments.get(
-                    roomKey
-                  )} এবং ${classKey})`
-                );
-                conflictSet.add(conflictKey);
-              }
-            } else {
-              roomAssignments.set(roomKey, classKey);
             }
           }
         });
@@ -1669,7 +1714,7 @@ class AdvancedSchoolRoutineApp {
       AppState.derivedClasses.forEach((cls) => {
         const option = document.createElement("option");
         option.value = cls.id;
-        option.textContent = `ক্লাস ${cls.grade}-${cls.section}`;
+        option.textContent = `ক্লাস ${cls.grade}`;
         viewClassSelect.appendChild(option);
       });
       viewClassSelect.value = currentValue;
@@ -1681,7 +1726,7 @@ class AdvancedSchoolRoutineApp {
       AppState.teachers.forEach((teacher) => {
         const option = document.createElement("option");
         option.value = teacher.id;
-        option.textContent = teacher.name;
+        option.textContent = `${teacher.name} - ${teacher.rank || ""}`;
         viewTeacherSelect.appendChild(option);
       });
       viewTeacherSelect.value = currentValue;
@@ -1819,7 +1864,10 @@ class AdvancedSchoolRoutineApp {
           if (slots.length > 0) {
             const slotsText = slots
               .map(
-                (slot) => `${slot.subject} (${slot.classKey}) - ${slot.teacher}`
+                (slot) =>
+                  `${slot.subject} (${slot.classKey}) - ${slot.teacher} (${
+                    slot.teacherRank || ""
+                  })`
               )
               .join("<br>");
             table += `<td style="font-size: 10px;">${slotsText}</td>`;
@@ -1836,13 +1884,13 @@ class AdvancedSchoolRoutineApp {
   }
 
   generateClassTable(classData) {
-    const classKey = `${classData.grade}-${classData.section}`;
+    const classKey = classData.grade.toString();
     const classRoutine = AppState.timetable.classWise[classKey];
 
     if (!classRoutine) return "";
 
     let table = `
-            <h2>ক্লাস ${classData.grade}-${classData.section}</h2>
+            <h2>ক্লাস ${classData.grade}</h2>
             <table class="timetable">
                 <tr><th>দিন/ঘন্টা</th>
         `;
@@ -1862,7 +1910,11 @@ class AdvancedSchoolRoutineApp {
         } else {
           const slotData = classRoutine?.[day]?.[period];
           if (slotData) {
-            table += `<td><strong>${slotData.subject}</strong><br><small>${slotData.teacher}</small><br><small>${slotData.room}</small></td>`;
+            table += `<td><strong>${slotData.subject}</strong><br><small>${
+              slotData.teacher
+            }</small><br><small>${
+              slotData.teacherRank || ""
+            }</small><br><small>${slotData.room}</small></td>`;
           } else {
             table += '<td style="background: #f8f9fa;">ফাঁকা</td>';
           }
@@ -1884,7 +1936,7 @@ class AdvancedSchoolRoutineApp {
 
     if (AppState.generatedRoutineTypes.classWise) {
       AppState.derivedClasses.forEach((cls) => {
-        const classKey = `${cls.grade}-${cls.section}`;
+        const classKey = cls.grade.toString();
         data.push([`ক্লাস: ${classKey}`]);
 
         const headerRow = ["দিন/ঘন্টা"];
@@ -1905,7 +1957,9 @@ class AdvancedSchoolRoutineApp {
                 AppState.timetable.classWise[classKey]?.[day]?.[period];
               if (slotData) {
                 row.push(
-                  `${slotData.subject} | ${slotData.teacher} | ${slotData.room}`
+                  `${slotData.subject} | ${slotData.teacher} | ${
+                    slotData.teacherRank || ""
+                  } | ${slotData.room}`
                 );
               } else {
                 row.push("ফাঁকা");
@@ -1976,18 +2030,21 @@ class AdvancedSchoolRoutineApp {
     let content = `<div class="report-header"><h3>শিক্ষক কাজের চাপ বিশ্লেষণ</h3></div>`;
 
     AppState.teachers.forEach((teacher) => {
-      let totalPeriods = 0;
+      let totalDays = 0;
       teacher.assignments.forEach((assignment) => {
-        totalPeriods += assignment.periodsPerWeek;
+        const [startDay, endDay] = assignment.dayRange.split("-").map(Number);
+        totalDays += endDay - startDay + 1;
       });
 
       content += `
                 <div class="data-item">
                     <div class="data-info">
-                        <strong>${teacher.name}</strong><br>
-                        <small>মোট সাপ্তাহিক ঘন্টা: ${totalPeriods}</small><br>
+                        <strong>${teacher.name}</strong> - ${
+        teacher.rank || ""
+      }<br>
+                        <small>মোট সাপ্তাহিক দিন: ${totalDays}</small><br>
                         <small>বিষয়সমূহ: ${teacher.assignments
-                          .map((a) => a.subjectName)
+                          .map((a) => `${a.subjectName} (${a.dayRange})`)
                           .join(", ")}</small>
                     </div>
                 </div>
@@ -1998,11 +2055,72 @@ class AdvancedSchoolRoutineApp {
   }
 
   generateClassDistributionReport() {
-    return "<p>ক্লাস বিতরণ রিপোর্ট তৈরি হচ্ছে...</p>";
+    let content = `<div class="report-header"><h3>ক্লাস বিতরণ রিপোর্ট</h3></div>`;
+
+    AppState.derivedClasses.forEach((cls) => {
+      const classKey = cls.grade.toString();
+      const subjects = [];
+
+      AppState.teachers.forEach((teacher) => {
+        teacher.assignments.forEach((assignment) => {
+          if (assignment.classGrade.toString() === classKey) {
+            subjects.push({
+              subject: assignment.subjectName,
+              teacher: teacher.name,
+              dayRange: assignment.dayRange,
+            });
+          }
+        });
+      });
+
+      content += `
+                <div class="data-item">
+                    <div class="data-info">
+                        <strong>ক্লাস ${cls.grade}</strong><br>
+                        <small>মোট বিষয়: ${subjects.length}</small><br>
+                        <small>বিষয়সমূহ: ${subjects
+                          .map((s) => `${s.subject} (${s.dayRange})`)
+                          .join(", ")}</small>
+                    </div>
+                </div>
+            `;
+    });
+
+    return content;
   }
 
   generateWeeklyOverviewReport() {
-    return "<p>সাপ্তাহিক সংক্ষিপ্ত রিপোর্ট তৈরি হচ্ছে...</p>";
+    let content = `<div class="report-header"><h3>সাপ্তাহিক সংক্ষিপ্ত রিপোর্ট</h3></div>`;
+
+    DAYS.forEach((day) => {
+      let dayClasses = 0;
+      let dayTeachers = new Set();
+
+      Object.keys(AppState.timetable.classWise).forEach((classKey) => {
+        PERIODS.forEach((period) => {
+          if (period !== "বিরতি") {
+            const slot =
+              AppState.timetable.classWise[classKey]?.[day]?.[period];
+            if (slot) {
+              dayClasses++;
+              dayTeachers.add(slot.teacherId);
+            }
+          }
+        });
+      });
+
+      content += `
+                <div class="data-item">
+                    <div class="data-info">
+                        <strong>${day}</strong><br>
+                        <small>মোট ক্লাস: ${dayClasses}</small><br>
+                        <small>সক্রিয় শিক্ষক: ${dayTeachers.size}</small>
+                    </div>
+                </div>
+            `;
+    });
+
+    return content;
   }
 
   showAlert(type, message) {
