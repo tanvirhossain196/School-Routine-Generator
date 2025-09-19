@@ -1093,6 +1093,18 @@ class AdvancedSchoolRoutineApp {
             isSlotAvailable = false;
             break;
           }
+
+          // New logic: Check for consecutive classes for the teacher
+          if (
+            this.hasTeacherThreeConsecutiveClasses(
+              assignment.teacherId,
+              day,
+              period
+            )
+          ) {
+            isSlotAvailable = false;
+            break;
+          }
         }
 
         if (isSlotAvailable) {
@@ -1119,7 +1131,12 @@ class AdvancedSchoolRoutineApp {
             specificDay,
             period
           ) &&
-          !AppState.timetable.classWise[classKey]?.[specificDay]?.[period]
+          !AppState.timetable.classWise[classKey]?.[specificDay]?.[period] &&
+          !this.hasTeacherThreeConsecutiveClasses(
+            assignment.teacherId,
+            specificDay,
+            period
+          )
         ) {
           availableSlots.push({
             period: period,
@@ -1137,7 +1154,12 @@ class AdvancedSchoolRoutineApp {
         DAYS.forEach((day, dayIndex) => {
           if (
             !this.isTeacherBusyInSlot(assignment.teacherId, day, period) &&
-            !AppState.timetable.classWise[classKey]?.[day]?.[period]
+            !AppState.timetable.classWise[classKey]?.[day]?.[period] &&
+            !this.hasTeacherThreeConsecutiveClasses(
+              assignment.teacherId,
+              day,
+              period
+            )
           ) {
             availableDaysForPeriod.push({
               period: period,
@@ -1167,6 +1189,62 @@ class AdvancedSchoolRoutineApp {
     return false;
   }
 
+  // New function to check for three consecutive classes for a teacher
+  hasTeacherThreeConsecutiveClasses(teacherId, day, currentPeriod) {
+    const actualPeriods = PERIODS.filter((p) => p !== "বিরতি");
+    const currentPeriodIndex = actualPeriods.indexOf(currentPeriod);
+
+    if (currentPeriodIndex === -1) return false; // Should not happen for actual periods
+
+    // Check if assigning to currentPeriod would make it the 3rd consecutive class
+    // We need to check if the two previous periods are already assigned to this teacher.
+    if (currentPeriodIndex >= 2) {
+      const prevPeriod1 = actualPeriods[currentPeriodIndex - 1];
+      const prevPeriod2 = actualPeriods[currentPeriodIndex - 2];
+
+      const isPrev1Busy = this.isTeacherBusyInSlot(teacherId, day, prevPeriod1);
+      const isPrev2Busy = this.isTeacherBusyInSlot(teacherId, day, prevPeriod2);
+
+      if (isPrev1Busy && isPrev2Busy) {
+        return true; // Assigning currentPeriod would make it 3 consecutive
+      }
+    }
+
+    // Check if assigning to currentPeriod would make it the 1st or 2nd of a 3-consecutive block
+    // This is a look-ahead check.
+    if (currentPeriodIndex <= actualPeriods.length - 3) {
+      const nextPeriod1 = actualPeriods[currentPeriodIndex + 1];
+      const nextPeriod2 = actualPeriods[currentPeriodIndex + 2];
+
+      // If currentPeriod is assigned, and the next two are already assigned to this teacher
+      const isNext1Busy = this.isTeacherBusyInSlot(teacherId, day, nextPeriod1);
+      const isNext2Busy = this.isTeacherBusyInSlot(teacherId, day, nextPeriod2);
+
+      if (isNext1Busy && isNext2Busy) {
+        return true; // Assigning currentPeriod would complete a 3-consecutive block
+      }
+    }
+
+    // Check if assigning to currentPeriod would make it the middle of a 3-consecutive block
+    // i.e., previous is busy, current is assigned, next is busy
+    if (
+      currentPeriodIndex >= 1 &&
+      currentPeriodIndex <= actualPeriods.length - 2
+    ) {
+      const prevPeriod = actualPeriods[currentPeriodIndex - 1];
+      const nextPeriod = actualPeriods[currentPeriodIndex + 1];
+
+      const isPrevBusy = this.isTeacherBusyInSlot(teacherId, day, prevPeriod);
+      const isNextBusy = this.isTeacherBusyInSlot(teacherId, day, nextPeriod);
+
+      if (isPrevBusy && isNextBusy) {
+        return true; // Assigning currentPeriod would make it the middle of 3 consecutive
+      }
+    }
+
+    return false;
+  }
+
   assignSubjectToMultipleSlots(assignment, slots) {
     const classKey = assignment.classKey;
     const subject = AppState.derivedSubjects.find(
@@ -1182,7 +1260,12 @@ class AdvancedSchoolRoutineApp {
     for (const slot of slots) {
       if (
         this.isTeacherBusyInSlot(assignment.teacherId, slot.day, slot.period) ||
-        AppState.timetable.classWise[classKey]?.[slot.day]?.[slot.period]
+        AppState.timetable.classWise[classKey]?.[slot.day]?.[slot.period] ||
+        this.hasTeacherThreeConsecutiveClasses(
+          assignment.teacherId,
+          slot.day,
+          slot.period
+        )
       ) {
         console.error(
           `Conflict detected during assignment for ${assignment.subjectName} on ${slot.day} at ${slot.period}`
@@ -1796,6 +1879,7 @@ class AdvancedSchoolRoutineApp {
                     ✅ সম্পূর্ণ দ্বন্দ্ব মুক্ত রুটিন! 
                     <ul style="margin: 10px 0; padding-left: 20px;">
                         <li>কোনো শিক্ষক একই সময়ে দুটি ক্লাসে নেই</li>
+                        <li>কোনো শিক্ষকের পরপর ৩টি ক্লাস নেই</li>
                         <li>প্রতিটি বিষয় নির্ধারিত দিনের রেঞ্জে সঠিকভাবে বিতরণ</li>
                         <li>উন্নত অ্যালগরিদম দিয়ে যাচাইকৃত</li>
                     </ul>
@@ -1830,7 +1914,7 @@ class AdvancedSchoolRoutineApp {
           const slot = AppState.timetable.classWise[classKey]?.[day]?.[period];
           if (slot) {
             if (teacherAssignments.has(slot.teacherId)) {
-              const conflictKey = `teacher-${slot.teacherId}-${day}-${period}`;
+              const conflictKey = `teacher-simultaneous-${slot.teacherId}-${day}-${period}`;
               if (!conflictSet.has(conflictKey)) {
                 conflicts.push(
                   `শিক্ষক "${
@@ -1848,6 +1932,32 @@ class AdvancedSchoolRoutineApp {
         });
       }
     }
+
+    // Check for 3 consecutive classes conflict
+    AppState.teachers.forEach((teacher) => {
+      DAYS.forEach((day) => {
+        const actualPeriods = PERIODS.filter((p) => p !== "বিরতি");
+        for (let i = 0; i <= actualPeriods.length - 3; i++) {
+          const period1 = actualPeriods[i];
+          const period2 = actualPeriods[i + 1];
+          const period3 = actualPeriods[i + 2];
+
+          const isBusy1 = this.isTeacherBusyInSlot(teacher.id, day, period1);
+          const isBusy2 = this.isTeacherBusyInSlot(teacher.id, day, period2);
+          const isBusy3 = this.isTeacherBusyInSlot(teacher.id, day, period3);
+
+          if (isBusy1 && isBusy2 && isBusy3) {
+            const conflictKey = `consecutive-${teacher.id}-${day}-${period1}-${period2}-${period3}`;
+            if (!conflictSet.has(conflictKey)) {
+              conflicts.push(
+                `শিক্ষক "${teacher.name}" এর পরপর ৩টি ক্লাস: ${day}, ${period1}, ${period2}, ${period3}`
+              );
+              conflictSet.add(conflictKey);
+            }
+          }
+        }
+      });
+    });
 
     return conflicts;
   }
