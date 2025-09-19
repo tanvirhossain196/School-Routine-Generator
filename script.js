@@ -332,6 +332,7 @@ class AdvancedSchoolRoutineApp {
         "advancedSchoolRoutineAppState",
         JSON.stringify({
           teachers: AppState.teachers,
+          generatedRoutineTypes: AppState.generatedRoutineTypes,
         })
       );
       localStorage.setItem(
@@ -786,7 +787,7 @@ class AdvancedSchoolRoutineApp {
                         <label>Subject Name *</label>
                         <div class="subject-dropdown-container">
                             <input type="text" class="form-control subject-name" value="${assignment.subjectName}" required>
-                            <div class="subject-dropdown" id="subjectDropdown${index}">
+                            <div class="subjectdropdown" id="subjectDropdown${index}">
                                 <!-- Options will be populated by JavaScript -->
                             </div>
                         </div>
@@ -901,6 +902,7 @@ class AdvancedSchoolRoutineApp {
       this.generateTeacherWiseFromClassWise();
       this.generateFullScheduleFromClassWise();
 
+      // এই line গুলো important - এখানে আমি সব types কে true করে দিয়েছি
       AppState.generatedRoutineTypes.classWise = true;
       AppState.generatedRoutineTypes.teacherWise = true;
       AppState.generatedRoutineTypes.fullSchedule = true;
@@ -1443,6 +1445,177 @@ class AdvancedSchoolRoutineApp {
     container.appendChild(table);
   }
 
+  // Main Full Schedule Renderer - এই function টি আপনার image মতো full school routine দেখাবে
+  renderProfessionalFullScheduleView(container) {
+    container.style.gridTemplateColumns = "1fr";
+
+    const fullScheduleContainer = document.createElement("div");
+    fullScheduleContainer.className = "professional-full-schedule";
+    fullScheduleContainer.style.cssText = `
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid #4caf50;
+        `;
+
+    // Header section - Image এর মতো
+    const headerSection = document.createElement("div");
+    headerSection.innerHTML = `
+            <div style="text-align: center; margin-bottom: 25px; border-bottom: 3px solid #4caf50; padding-bottom: 15px;">
+                <h2 style="color: #2c3e50; font-size: 24px; font-weight: 700; margin-bottom: 5px;">
+                    সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)
+                </h2>
+                <p style="color: #7f8c8d; font-size: 14px; margin: 0;">
+                    মিরপুর উচ্চ বিদ্যালয় - নবীনগর, ব্রাহ্মণবাড়িয়া
+                </p>
+            </div>
+        `;
+    fullScheduleContainer.appendChild(headerSection);
+
+    // Professional table - Image এর exact layout
+    const tableContainer = document.createElement("div");
+    tableContainer.style.cssText = `
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 2px solid #333;
+        `;
+
+    const table = document.createElement("table");
+    table.style.cssText = `
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'SolaimanLipi', Arial, sans-serif;
+            background: white;
+            font-size: 12px;
+        `;
+
+    // Create header row - Image মতো exact structure
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+
+    // Days column header
+    const dayHeader = document.createElement("th");
+    dayHeader.textContent = "দিনসমূহ";
+    dayHeader.style.cssText = `
+            background: #4472c4;
+            color: white;
+            padding: 10px 8px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid #333;
+            font-size: 12px;
+            width: 100px;
+        `;
+    headerRow.appendChild(dayHeader);
+
+    // Period headers with time slots - Image মতো
+    PERIODS.forEach((period, index) => {
+      const periodHeader = document.createElement("th");
+      periodHeader.style.cssText = `
+                background: #4472c4;
+                color: white;
+                padding: 8px 6px;
+                text-align: center;
+                font-weight: 600;
+                border: 1px solid #333;
+                font-size: 11px;
+                min-width: 110px;
+            `;
+
+      if (period === "বিরতি") {
+        periodHeader.innerHTML = `
+                    <div>বিরতি</div>
+                    <div style="font-size: 9px;">${TIME_SLOTS[index]}</div>
+                `;
+      } else {
+        periodHeader.innerHTML = `
+                    <div>${period}</div>
+                    <div style="font-size: 9px;">${TIME_SLOTS[index]}</div>
+                `;
+      }
+
+      headerRow.appendChild(periodHeader);
+    });
+
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Create table body - Image মতো exact data structure
+    const tbody = document.createElement("tbody");
+
+    DAYS.forEach((day) => {
+      const dayRow = document.createElement("tr");
+
+      // Day cell - Image মতো styling
+      const dayCell = document.createElement("td");
+      dayCell.textContent = day;
+      dayCell.style.cssText = `
+                background: #5b9bd5;
+                color: white;
+                font-weight: 600;
+                text-align: center;
+                padding: 12px 8px;
+                border: 1px solid #333;
+                font-size: 12px;
+            `;
+      dayRow.appendChild(dayCell);
+
+      // Period cells with exact content like image
+      PERIODS.forEach((period) => {
+        const periodCell = document.createElement("td");
+        periodCell.style.cssText = `
+                    padding: 8px 4px;
+                    text-align: center;
+                    vertical-align: middle;
+                    border: 1px solid #333;
+                    min-height: 60px;
+                    background: white;
+                    font-size: 10px;
+                `;
+
+        if (period === "বিরতি") {
+          periodCell.style.background = "#f0f0f0";
+          periodCell.innerHTML = `<div style="font-weight: 600; color: #666;">বিরতি</div>`;
+        } else {
+          const slots = AppState.timetable.fullSchedule[day]?.[period] || [];
+
+          if (slots.length > 0) {
+            // Image মতো multiple class information show করা
+            const slotsHtml = slots
+              .map((slot) => {
+                return `
+                                    <div style="
+                                        border-bottom: 1px solid #ddd;
+                                        padding: 2px 0;
+                                        margin: 1px 0;
+                                        line-height: 1.1;
+                                    ">
+                                        <strong>${slot.subject} (${slot.classKey})</strong><br>
+                                        <small>${slot.teacher}</small>
+                                    </div>
+                                `;
+              })
+              .join("");
+
+            periodCell.innerHTML = slotsHtml;
+          } else {
+            periodCell.innerHTML = `<div style="color: #999; font-style: italic;">ফাঁকা</div>`;
+          }
+        }
+
+        dayRow.appendChild(periodCell);
+      });
+
+      tbody.appendChild(dayRow);
+    });
+
+    table.appendChild(tbody);
+    tableContainer.appendChild(table);
+    fullScheduleContainer.appendChild(tableContainer);
+    container.appendChild(fullScheduleContainer);
+  }
+
   createCompactTimetableCell(classKey, day, period) {
     const cellContent = document.createElement("div");
     cellContent.className = "timetable-cell-content";
@@ -1521,266 +1694,6 @@ class AdvancedSchoolRoutineApp {
     }
 
     return cellContent;
-  }
-
-  renderProfessionalFullScheduleView(container) {
-    container.style.gridTemplateColumns = "1fr";
-
-    const fullScheduleContainer = document.createElement("div");
-    fullScheduleContainer.className = "professional-full-schedule";
-    fullScheduleContainer.style.cssText = `
-            background: linear-gradient(135deg, #f8f9fa, #ffffff);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e9ecef;
-        `;
-
-    // Header section
-    const headerSection = document.createElement("div");
-    headerSection.innerHTML = `
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #2c3e50; font-size: 28px; font-weight: 700; margin-bottom: 8px;">
-                    মিরপুর উচ্চ বিদ্যালয়
-                </h2>
-                <p style="color: #7f8c8d; font-size: 16px; margin-bottom: 15px;">
-                    নবীনগর, ব্রাহ্মণবাড়িয়া - সাপ্তাহিক ক্লাস রুটিন
-                </p>
-                <div style="display: inline-block; background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 8px 20px; border-radius: 25px; font-weight: 600; font-size: 14px;">
-                    ✓ সম্পূর্ণ দ্বন্দ্ব মুক্ত সিস্টেম
-                </div>
-            </div>
-        `;
-    fullScheduleContainer.appendChild(headerSection);
-
-    // Professional table with proper structure
-    const tableContainer = document.createElement("div");
-    tableContainer.style.cssText = `
-            overflow-x: auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            background: white;
-        `;
-
-    const table = document.createElement("table");
-    table.style.cssText = `
-            width: 100%;
-            border-collapse: collapse;
-            font-family: 'Segoe UI', sans-serif;
-            background: white;
-            min-width: 1000px;
-        `;
-
-    // Create header row
-    const thead = document.createElement("thead");
-    const headerRow = document.createElement("tr");
-
-    // Day header
-    const dayHeader = document.createElement("th");
-    dayHeader.textContent = "দিন / ঘন্টা";
-    dayHeader.style.cssText = `
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            padding: 15px 20px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 14px;
-            border-right: 2px solid rgba(255,255,255,0.1);
-            width: 120px;
-            position: sticky;
-            left: 0;
-            z-index: 10;
-        `;
-    headerRow.appendChild(dayHeader);
-
-    // Period headers
-    PERIODS.forEach((period, index) => {
-      const periodHeader = document.createElement("th");
-      periodHeader.style.cssText = `
-                padding: 12px 8px;
-                text-align: center;
-                font-weight: 600;
-                font-size: 13px;
-                border-right: 1px solid rgba(255,255,255,0.1);
-                width: 140px;
-                color: white;
-            `;
-
-      if (period === "বিরতি") {
-        periodHeader.style.background =
-          "linear-gradient(135deg, #95a5a6, #7f8c8d)";
-        periodHeader.innerHTML = `
-                    <div style="font-weight: 600;">বিরতি</div>
-                    <div style="font-size: 11px; opacity: 0.9;">${TIME_SLOTS[index]}</div>
-                `;
-      } else {
-        periodHeader.style.background =
-          "linear-gradient(135deg, #2c3e50, #34495e)";
-        periodHeader.innerHTML = `
-                    <div style="font-weight: 600;">${period}</div>
-                    <div style="font-size: 11px; opacity: 0.9;">${TIME_SLOTS[index]}</div>
-                `;
-      }
-
-      headerRow.appendChild(periodHeader);
-    });
-
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    // Create table body
-    const tbody = document.createElement("tbody");
-
-    DAYS.forEach((day, dayIndex) => {
-      const dayRow = document.createElement("tr");
-      dayRow.style.cssText = `
-                border-bottom: 1px solid #e9ecef;
-                transition: background-color 0.3s ease;
-            `;
-
-      // Add hover effect
-      dayRow.addEventListener("mouseenter", () => {
-        dayRow.style.backgroundColor = "#f8f9fa";
-      });
-      dayRow.addEventListener("mouseleave", () => {
-        dayRow.style.backgroundColor = "";
-      });
-
-      // Day cell
-      const dayCell = document.createElement("td");
-      dayCell.textContent = day;
-      dayCell.style.cssText = `
-                background: linear-gradient(135deg, #3498db, #2980b9);
-                color: white;
-                font-weight: 600;
-                text-align: center;
-                padding: 15px 20px;
-                border-right: 2px solid rgba(255,255,255,0.1);
-                position: sticky;
-                left: 0;
-                z-index: 5;
-            `;
-      dayRow.appendChild(dayCell);
-
-      // Period cells
-      PERIODS.forEach((period) => {
-        const periodCell = document.createElement("td");
-        periodCell.style.cssText = `
-                    padding: 10px 6px;
-                    text-align: center;
-                    vertical-align: middle;
-                    border-right: 1px solid #e9ecef;
-                    min-height: 70px;
-                    max-width: 140px;
-                `;
-
-        if (period === "বিরতি") {
-          periodCell.style.cssText += `
-                        background: linear-gradient(135deg, #ecf0f1, #d5dbdb);
-                        font-weight: 600;
-                        color: #7f8c8d;
-                    `;
-          periodCell.innerHTML = `
-                        <div style="font-size: 13px;">বিরতি</div>
-                    `;
-        } else {
-          const slots = AppState.timetable.fullSchedule[day]?.[period] || [];
-
-          if (slots.length > 0) {
-            const slotsHtml = slots
-              .map((slot, slotIndex) => {
-                const subject = AppState.derivedSubjects.find(
-                  (s) => s.id === slot.subjectId
-                );
-                const bgColor = subject?.color || "#4caf50";
-
-                return `
-                                    <div style="
-                                        background: linear-gradient(135deg, ${bgColor}15, ${bgColor}25);
-                                        border-left: 3px solid ${bgColor};
-                                        border-radius: 4px;
-                                        padding: 4px 6px;
-                                        margin: ${
-                                          slotIndex > 0 ? "3px" : "0"
-                                        } 0;
-                                        font-size: 11px;
-                                        line-height: 1.2;
-                                        text-align: left;
-                                    ">
-                                        <div style="font-weight: 600; color: #2c3e50;">${
-                                          slot.subject
-                                        }</div>
-                                        <div style="color: #34495e;">ক্লাস ${
-                                          slot.classKey
-                                        }</div>
-                                        <div style="color: #7f8c8d; font-size: 10px;">${
-                                          slot.teacher
-                                        }</div>
-                                        <div style="color: #95a5a6; font-size: 9px;">${
-                                          slot.teacherRank || ""
-                                        }</div>
-                                        <div style="color: #bdc3c7; font-size: 8px;">Days: ${
-                                          slot.daysPerWeek || 1
-                                        }/week</div>
-                                    </div>
-                                `;
-              })
-              .join("");
-
-            periodCell.innerHTML = slotsHtml;
-          } else {
-            periodCell.style.background = "#fafbfc";
-            periodCell.innerHTML = `
-                            <div style="color: #95a5a6; font-style: italic; font-size: 12px;">ফাঁকা</div>
-                        `;
-          }
-        }
-
-        dayRow.appendChild(periodCell);
-      });
-
-      tbody.appendChild(dayRow);
-    });
-
-    table.appendChild(tbody);
-    tableContainer.appendChild(table);
-    fullScheduleContainer.appendChild(tableContainer);
-
-    // Add summary statistics
-    const summaryDiv = document.createElement("div");
-    summaryDiv.style.cssText = `
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 15px;
-        `;
-
-    const totalClasses = Object.keys(AppState.timetable.classWise).length;
-    const totalTeachers = AppState.teachers.length;
-    const totalSubjects = AppState.derivedSubjects.length;
-
-    summaryDiv.innerHTML = `
-            <div style="text-align: center; padding: 15px; background: #e8f5e8; border-radius: 8px; flex: 1; min-width: 120px;">
-                <div style="font-size: 24px; font-weight: 700; color: #27ae60;">${totalClasses}</div>
-                <div style="font-size: 14px; color: #2c3e50;">মোট ক্লাস</div>
-            </div>
-            <div style="text-align: center; padding: 15px; background: #e3f2fd; border-radius: 8px; flex: 1; min-width: 120px;">
-                <div style="font-size: 24px; font-weight: 700; color: #1976d2;">${totalTeachers}</div>
-                <div style="font-size: 14px; color: #2c3e50;">মোট শিক্ষক</div>
-            </div>
-            <div style="text-align: center; padding: 15px; background: #fff3e0; border-radius: 8px; flex: 1; min-width: 120px;">
-                <div style="font-size: 24px; font-weight: 700; color: #f57c00;">${totalSubjects}</div>
-                <div style="font-size: 14px; color: #2c3e50;">মোট বিষয়</div>
-            </div>
-            <div style="text-align: center; padding: 15px; background: #fce4ec; border-radius: 8px; flex: 1; min-width: 120px;">
-                <div style="font-size: 24px; font-weight: 700; color: #c2185b;">০</div>
-                <div style="font-size: 14px; color: #2c3e50;">দ্বন্দ্ব</div>
-            </div>
-        `;
-
-    fullScheduleContainer.appendChild(summaryDiv);
-    container.appendChild(fullScheduleContainer);
   }
 
   performEnhancedConflictAnalysis() {
@@ -1889,11 +1802,38 @@ class AdvancedSchoolRoutineApp {
     this.setupViewFilters();
   }
 
-  // Enhanced Export functions with Full Schedule
-  exportToPDF() {
-    let allContent = this.generateAllRoutineContent();
+  // এখানে main fix - routine generated হয়েছে কিনা check করার জন্য improved function
+  isRoutineGenerated() {
+    // Check if any data exists in timetable
+    const hasClassWiseData =
+      Object.keys(AppState.timetable.classWise).length > 0;
+    const hasFullScheduleData =
+      Object.keys(AppState.timetable.fullSchedule).length > 0;
 
-    if (!allContent) {
+    // Also check if there's actual slot data, not just empty objects
+    let hasActualData = false;
+
+    if (hasClassWiseData) {
+      for (const classKey in AppState.timetable.classWise) {
+        for (const day in AppState.timetable.classWise[classKey]) {
+          for (const period in AppState.timetable.classWise[classKey][day]) {
+            if (AppState.timetable.classWise[classKey][day][period]) {
+              hasActualData = true;
+              break;
+            }
+          }
+          if (hasActualData) break;
+        }
+        if (hasActualData) break;
+      }
+    }
+
+    return hasActualData && (hasClassWiseData || hasFullScheduleData);
+  }
+
+  // Enhanced Export functions - এই functions গুলো আপনার requirement অনুযায়ী modify করা হয়েছে
+  exportToPDF() {
+    if (!this.isRoutineGenerated()) {
       this.showAlert(
         "danger",
         "কোনো রুটিন তৈরি হয়নি। প্রথমে রুটিন তৈরি করুন।"
@@ -1901,284 +1841,540 @@ class AdvancedSchoolRoutineApp {
       return;
     }
 
+    // Generate table format content like the image
+    const tableContent = this.generateImageStyleTable();
+
     const printWindow = window.open("", "_blank");
     printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>মিরপুর উচ্চ বিদ্যালয় - দ্বন্দ্ব মুক্ত ক্লাস রুটিন</title>
-                <style>
-                    body { font-family: 'SolaimanLipi', Arial, sans-serif; margin: 20px; color: #000; }
-                    .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #27ae60; padding-bottom: 20px; }
-                    .header h1 { color: #2c3e50; margin-bottom: 5px; font-size: 28px; font-weight: 700; }
-                    .timetable { width: 100%; border-collapse: collapse; margin-bottom: 30px; page-break-inside: avoid; }
-                    .timetable th, .timetable td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 11px; }
-                    .timetable th { background: #2c3e50; color: white; font-weight: bold; }
-                    .full-schedule-table { font-size: 10px; }
-                    .full-schedule-table th, .full-schedule-table td { padding: 6px 4px; }
-                    @media print { body { margin: 10px; } }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h1>মিরপুর উচ্চ বিদ্যালয়</h1>
-                    <p>নবীনগর, ব্রাহ্মণবাড়িয়া - দ্বন্দ্ব মুক্ত রুটিন</p>
-                </div>
-                ${allContent}
-            </body>
-            </html>
-        `);
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)</title>
+              <style>
+                  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
+                  
+                  * {
+                      margin: 0;
+                      padding: 0;
+                      box-sizing: border-box;
+                  }
+                  
+                  body { 
+                      font-family: 'Noto Sans Bengali', Arial, sans-serif; 
+                      margin: 15px; 
+                      color: #000; 
+                      background: white;
+                      font-size: 12px;
+                  }
+                  
+                  .header {
+                      text-align: center;
+                      margin-bottom: 20px;
+                      padding: 15px;
+                      border-bottom: 2px solid #333;
+                  }
+                  
+                  .header h1 {
+                      font-size: 20px;
+                      font-weight: 700;
+                      margin-bottom: 5px;
+                      color: #2c3e50;
+                  }
+                  
+                  .header p {
+                      font-size: 14px;
+                      color: #666;
+                  }
+                  
+                  .routine-table { 
+                      width: 100%; 
+                      border-collapse: collapse; 
+                      border: 2px solid #333;
+                      margin: 10px 0;
+                  }
+                  
+                  .routine-table th, .routine-table td { 
+                      border: 1px solid #333; 
+                      padding: 8px 6px; 
+                      text-align: center; 
+                      font-size: 10px; 
+                      vertical-align: middle;
+                      line-height: 1.2;
+                  }
+                  
+                  .routine-table th { 
+                      background: #4472c4; 
+                      color: white; 
+                      font-weight: 600; 
+                      font-size: 9px;
+                  }
+                  
+                  .day-header { 
+                      background: #5b9bd5 !important; 
+                      color: white !important; 
+                      font-weight: 600;
+                      font-size: 10px;
+                  }
+                  
+                  .break-cell { 
+                      background: #f0f0f0; 
+                      color: #666; 
+                      font-weight: 600; 
+                  }
+                  
+                  .subject-info {
+                      font-size: 9px;
+                      line-height: 1.1;
+                      margin: 1px 0;
+                  }
+                  
+                  .subject-name {
+                      font-weight: 600;
+                      color: #2c3e50;
+                  }
+                  
+                  .class-info {
+                      color: #3498db;
+                      font-weight: 500;
+                  }
+                  
+                  .teacher-info {
+                      color: #27ae60;
+                      font-size: 8px;
+                  }
+                  
+                  .empty-cell {
+                      color: #999;
+                      font-style: italic;
+                      background: #fafafa;
+                  }
+                  
+                  @media print { 
+                      body { 
+                          margin: 8px;
+                          font-size: 10px;
+                      }
+                      .routine-table { 
+                          font-size: 8px; 
+                      }
+                      .routine-table th, .routine-table td {
+                          padding: 4px 3px;
+                      }
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="header">
+                  <h1>সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)</h1>
+                  <p>মিরপুর উচ্চ বিদ্যালয় - নবীনগর, ব্রাহ্মণবাড়িয়া</p>
+              </div>
+              ${tableContent}
+          </body>
+          </html>
+      `);
     printWindow.document.close();
-    this.showAlert(
-      "success",
-      "দ্বন্দ্ব মুক্ত পিডিএফ এক্সপোর্ট উইন্দো খোলা হয়েছে!"
-    );
+
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+
+    this.showAlert("success", "সম্পূর্ণ স্কুল রুটিন PDF এক্সপোর্ট প্রস্তুত!");
+  }
+
+  generateImageStyleTable() {
+    let table = `
+      <table class="routine-table">
+          <tr>
+              <th style="width: 80px;">দিনসমূহ</th>
+  `;
+
+    // Header row with periods and time slots
+    PERIODS.forEach((period, index) => {
+      table += `<th style="width: 120px;">
+                  <div>${period}</div>
+                  <div style="font-size: 8px; font-weight: 400;">${TIME_SLOTS[index]}</div>
+              </th>`;
+    });
+    table += "</tr>";
+
+    // Data rows for each day
+    DAYS.forEach((day) => {
+      table += `<tr><td class="day-header">${day}</td>`;
+
+      PERIODS.forEach((period) => {
+        if (period === "বিরতি") {
+          table += '<td class="break-cell">বিরতি</td>';
+        } else {
+          // Get all classes data for this day and period
+          let cellContent = "";
+          let hasContent = false;
+
+          // Loop through all classes to see what's scheduled
+          AppState.derivedClasses.forEach((classData) => {
+            const classKey = classData.grade.toString();
+            const slot =
+              AppState.timetable.classWise[classKey]?.[day]?.[period];
+
+            if (slot) {
+              hasContent = true;
+              cellContent += `<div class="subject-info">
+                              <div class="subject-name">${slot.subject}</div>
+                              <div class="class-info">(ক্লাস ${classKey})</div>
+                              <div class="teacher-info">${slot.teacher}</div>
+                            </div>`;
+            }
+          });
+
+          if (hasContent) {
+            table += `<td>${cellContent}</td>`;
+          } else {
+            table += '<td class="empty-cell">ফাঁকা</td>';
+          }
+        }
+      });
+      table += "</tr>";
+    });
+
+    table += "</table>";
+
+    // Add detailed summary information
+    table += this.generateDetailedSummary();
+
+    return table;
+  }
+
+  generateDetailedSummary() {
+    let summary = `
+      <div style="margin-top: 20px; padding: 15px; border: 1px solid #333; background: #f9f9f9;">
+          <h3 style="margin-bottom: 15px; color: #2c3e50; text-align: center;">সারসংক্ষেপ:</h3>
+  `;
+
+    // Teacher details with their assignments
+    summary +=
+      '<div style="margin-bottom: 20px;"><strong>শিক্ষক তালিকা:</strong><br>';
+    AppState.teachers.forEach((teacher, index) => {
+      summary += `<div style="margin: 8px 0; font-size: 11px;">
+                  <strong>${index + 1}. ${teacher.name} (${
+        teacher.rank || "শিক্ষক"
+      }) - ${teacher.assignments.length} বিষয়</strong><br>
+                `;
+
+      teacher.assignments.forEach((assignment, assignIndex) => {
+        summary += `<span style="margin-left: 20px; font-size: 10px; color: #666;">
+                    ${assignIndex + 1}. ${assignment.subjectName} - ক্লাস ${
+          assignment.classGrade
+        } - ${assignment.daysPerWeek || 1} দিন/সপ্তাহ
+                  </span><br>`;
+      });
+      summary += "</div>";
+    });
+    summary += "</div>";
+
+    // Class-wise subject distribution
+    summary +=
+      '<div style="margin-bottom: 20px;"><strong>ক্লাস ও বিষয় বিতরণ:</strong><br>';
+    AppState.derivedClasses.forEach((cls) => {
+      const classKey = cls.grade.toString();
+      summary += `<div style="margin: 5px 0; font-size: 11px;">
+                  <strong>ক্লাস ${cls.grade}:</strong> `;
+
+      const classSubjects = [];
+      AppState.teachers.forEach((teacher) => {
+        teacher.assignments.forEach((assignment) => {
+          if (assignment.classGrade.toString() === classKey) {
+            classSubjects.push(`${assignment.subjectName} (${teacher.name})`);
+          }
+        });
+      });
+
+      summary += classSubjects.join(", ");
+      summary += "</div>";
+    });
+    summary += "</div>";
+
+    // Weekly class statistics
+    summary +=
+      '<div style="margin-bottom: 15px;"><strong>দৈনিক ক্লাস সংখ্যা:</strong><br>';
+    DAYS.forEach((day) => {
+      let dayClassCount = 0;
+      PERIODS.forEach((period) => {
+        if (period !== "বিরতি") {
+          AppState.derivedClasses.forEach((classData) => {
+            const classKey = classData.grade.toString();
+            const slot =
+              AppState.timetable.classWise[classKey]?.[day]?.[period];
+            if (slot) {
+              dayClassCount++;
+            }
+          });
+        }
+      });
+      summary += `<span style="font-size: 10px; margin-right: 15px; display: inline-block; margin-bottom: 5px;">
+                  ${day}: ${dayClassCount} ক্লাস
+                </span>`;
+    });
+    summary += "</div>";
+
+    // Generation info
+    summary += `
+      <div style="text-align: center; margin-top: 15px; padding: 10px; background: #e8f5e8; border-radius: 5px;">
+          <div style="font-size: 11px; color: #27ae60; font-weight: 600;">
+              দ্বন্দ্ব মুক্ত রুটিন | উন্নত অ্যালগরিদম দ্বারা তৈরি
+          </div>
+          <div style="font-size: 9px; color: #666; margin-top: 5px;">
+              প্রতিবেদন তৈরির তারিখ: ${new Date().toLocaleDateString(
+                "bn-BD"
+              )} | 
+              সময়: ${new Date().toLocaleTimeString("bn-BD")}
+          </div>
+      </div>
+  `;
+
+    summary += "</div>";
+    return summary;
+  }
+
+  generateSummarySection() {
+    let summary = `
+      <div style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">
+          <h3 style="margin-bottom: 10px; color: #2c3e50;">সারসংক্ষেপ:</h3>
+  `;
+
+    // Teacher summary
+    summary +=
+      '<div style="margin-bottom: 15px;"><strong>শিক্ষক তালিকা:</strong><br>';
+    AppState.teachers.forEach((teacher, index) => {
+      const totalClasses = teacher.assignments.reduce((total, assignment) => {
+        return total + (assignment.daysPerWeek || 1);
+      }, 0);
+
+      summary += `<span style="font-size: 10px; margin-right: 15px;">
+                  ${index + 1}. ${teacher.name} (${
+        teacher.rank || "শিক্ষক"
+      }) - ${totalClasses} ক্লাস/সপ্তাহ
+                </span>`;
+
+      if ((index + 1) % 2 === 0) summary += "<br>";
+    });
+    summary += "</div>";
+
+    // Class and subject summary
+    summary +=
+      '<div style="margin-bottom: 15px;"><strong>ক্লাস ও বিষয় বিতরণ:</strong><br>';
+    AppState.derivedClasses.forEach((cls) => {
+      const classKey = cls.grade.toString();
+      const subjectsCount = AppState.teachers.reduce((count, teacher) => {
+        return (
+          count +
+          teacher.assignments.filter(
+            (assignment) => assignment.classGrade.toString() === classKey
+          ).length
+        );
+      }, 0);
+
+      summary += `<span style="font-size: 10px; margin-right: 15px;">
+                  ক্লাস ${cls.grade}: ${subjectsCount} বিষয়
+                </span>`;
+    });
+    summary += "</div>";
+
+    // Daily class count
+    summary += "<div><strong>দৈনিক ক্লাস সংখ্যা:</strong><br>";
+    DAYS.forEach((day) => {
+      let dayClassCount = 0;
+      PERIODS.forEach((period) => {
+        if (period !== "বিরতি") {
+          const slots = AppState.timetable.fullSchedule[day]?.[period] || [];
+          dayClassCount += slots.length;
+        }
+      });
+      summary += `<span style="font-size: 10px; margin-right: 15px;">
+                  ${day}: ${dayClassCount} ক্লাস
+                </span>`;
+    });
+    summary += "</div>";
+
+    summary += `
+      </div>
+      <div style="text-align: center; margin-top: 15px; font-size: 10px; color: #666;">
+          প্রতিবেদন তৈরির তারিখ: ${new Date().toLocaleDateString("bn-BD")} | 
+          সময়: ${new Date().toLocaleTimeString("bn-BD")}
+      </div>
+  `;
+
+    return summary;
+  }
+
+  // Image style full routine generator - এটি আপনার দেখানো image এর exact মতো routine তৈরি করবে
+  generateImageStyleFullRoutine() {
+    let table = `
+            <table class="full-routine-table">
+                <tr>
+                    <th style="width: 100px;">দিনসমূহ</th>
+        `;
+
+    // Header row with periods and time slots
+    PERIODS.forEach((period, index) => {
+      table += `<th style="min-width: 110px;">
+                    <div>${period}</div>
+                    <div style="font-size: 9px; font-weight: normal;">${TIME_SLOTS[index]}</div>
+                </th>`;
+    });
+    table += "</tr>";
+
+    // Data rows
+    DAYS.forEach((day) => {
+      table += `<tr><td class="day-header">${day}</td>`;
+
+      PERIODS.forEach((period) => {
+        if (period === "বিরতি") {
+          table += '<td class="break-cell">বিরতি</td>';
+        } else {
+          const slots = AppState.timetable.fullSchedule[day]?.[period] || [];
+
+          if (slots.length > 0) {
+            const slotsText = slots
+              .map(
+                (slot) =>
+                  `<div class="class-slot">
+                   <strong>${slot.subject} (${slot.classKey})</strong><br>
+                   <small>${slot.teacher}</small>
+                 </div>`
+              )
+              .join("");
+            table += `<td>${slotsText}</td>`;
+          } else {
+            table += '<td style="color: #999; font-style: italic;">ফাঁকা</td>';
+          }
+        }
+      });
+      table += "</tr>";
+    });
+
+    table += "</table>";
+    return table;
   }
 
   exportToExcel() {
+    if (!this.isRoutineGenerated()) {
+      this.showAlert(
+        "danger",
+        "কোনো রুটিন তৈরি হয়নি। প্রথমে রুটিন তৈরি করুন।"
+      );
+      return;
+    }
+
     const data = this.generateExcelData();
     const csvContent = this.convertToCSV(data);
     this.downloadFile(
       csvContent,
-      `conflict-free-routine-${new Date().toISOString().split("T")[0]}.csv`,
+      `complete-school-routine-${new Date().toISOString().split("T")[0]}.csv`,
       "text/csv"
     );
-    this.showAlert("success", "দ্বন্দ্ব মুক্ত সিএসভি ফাইল ডাউনলোড সম্পন্ন!");
+    this.showAlert("success", "সম্পূর্ণ স্কুল রুটিন CSV ফাইল ডাউনলোড সম্পন্ন!");
   }
 
   printRoutine() {
-    let allContent = this.generateAllRoutineContent();
-    if (!allContent) {
+    if (!this.isRoutineGenerated()) {
       this.showAlert("danger", "প্রিন্ট করার জন্য কোনো রুটিন নেই।");
       return;
     }
+
+    const fullRoutineContent = this.generateImageStyleFullRoutine();
 
     const printWindow = window.open("", "_blank");
     printWindow.document.write(`
             <!DOCTYPE html>
             <html>
             <head>
-                <title>মিরপুর উচ্চ বিদ্যালয় - দ্বন্দ্ব মুক্ত রুটিন</title>
+                <title>মিরপুর উচ্চ বিদ্যালয় - সম্পূর্ণ স্কুল রুটিন</title>
                 <style>
-                    body { font-family: 'SolaimanLipi', Arial, sans-serif; margin: 20px; color: #000; }
-                    .header { text-align: center; margin-bottom: 30px; }
-                    .timetable { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-                    .timetable th, .timetable td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 11px; }
-                    .timetable th { background: #2c3e50; color: white; font-weight: bold; }
-                    .full-schedule-table { font-size: 9px; }
-                    .full-schedule-table th, .full-schedule-table td { padding: 5px 3px; }
-                    @media print { body { margin: 10px; } }
+                    body { 
+                        font-family: 'SolaimanLipi', Arial, sans-serif; 
+                        margin: 15px; 
+                        color: #000; 
+                        background: white;
+                    }
+                    .routine-header { 
+                        text-align: center; 
+                        margin-bottom: 20px; 
+                        border-bottom: 3px solid #000; 
+                        padding-bottom: 15px; 
+                    }
+                    .full-routine-table { 
+                        width: 100%; 
+                        border-collapse: collapse; 
+                        border: 2px solid #000;
+                    }
+                    .full-routine-table th, .full-routine-table td { 
+                        border: 1px solid #000; 
+                        padding: 6px 4px; 
+                        text-align: center; 
+                        font-size: 10px; 
+                    }
+                    .full-routine-table th { 
+                        background: #ddd; 
+                        font-weight: bold; 
+                    }
+                    .day-header { 
+                        background: #eee !important; 
+                        font-weight: bold; 
+                    }
+                    @media print { 
+                        body { margin: 10px; }
+                        .full-routine-table { font-size: 9px; }
+                    }
                 </style>
             </head>
             <body>
-                ${allContent}
+                <div class="routine-header">
+                    <h1>সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)</h1>
+                    <p>মিরপুর উচ্চ বিদ্যালয় - নবীনগর, ব্রাহ্মণবাড়িয়া</p>
+                </div>
+                ${fullRoutineContent}
             </body>
             </html>
         `);
     printWindow.document.close();
     printWindow.print();
-    this.showAlert("success", "দ্বন্দ্ব মুক্ত প্রিন্ট ডায়ালগ খোলা হয়েছে!");
+    this.showAlert("success", "প্রিন্ট ডায়ালগ খোলা হয়েছে!");
   }
 
-  generateAllRoutineContent() {
-    let content = "";
+  generateExcelData() {
+    let data = [
+      ["মিরপুর উচ্চ বিদ্যালয় - সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)"],
+      ["নবীনগর, ব্রাহ্মণবাড়িয়া"],
+      [""],
+    ];
 
-    // Add header for full routine
-    content += `
-        <div class="header">
-            <h1>মিরপুর উচ্চ বিদ্যালয়</h1>
-            <p>নবীনগর, ব্রাহ্মণবাড়িয়া - সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)</p>
-        </div>
-    `;
-
-    // Add full schedule first
-    if (AppState.generatedRoutineTypes.fullSchedule) {
-      content += this.generateFullScheduleTable();
-    }
-
-    // Add individual class routines
-    if (AppState.generatedRoutineTypes.classWise) {
-      AppState.derivedClasses.forEach((cls) => {
-        content += this.generateClassTable(cls);
-      });
-    }
-
-    return content;
-  }
-
-  generateFullScheduleTable() {
-    let table = `
-            <h2>সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)</h2>
-            <table class="timetable full-schedule-table">
-                <tr><th>দিন/ঘন্টা</th>
-        `;
-
+    // Add full schedule data
+    const headerRow = ["দিনসমূহ"];
     PERIODS.forEach((period, index) => {
-      table += `<th>${period === "বিরতি" ? "বিরতি" : period}<br><small>${
-        TIME_SLOTS[index]
-      }</small></th>`;
+      headerRow.push(`${period} (${TIME_SLOTS[index]})`);
     });
-    table += "</tr>";
+    data.push(headerRow);
 
     DAYS.forEach((day) => {
-      table += `<tr><td style="background: #3498db; color: white; font-weight: bold;">${day}</td>`;
+      const row = [day];
       PERIODS.forEach((period) => {
         if (period === "বিরতি") {
-          table += '<td style="background: #f8f9fa;">বিরতি</td>';
+          row.push("বিরতি");
         } else {
           const slots = AppState.timetable.fullSchedule[day]?.[period] || [];
           if (slots.length > 0) {
             const slotsText = slots
               .map(
-                (slot) =>
-                  `${slot.subject} (${slot.classKey}) - ${slot.teacher} (${
-                    slot.teacherRank || ""
-                  }) [${slot.daysPerWeek || 1}d/w]`
+                (slot) => `${slot.subject} (${slot.classKey}) - ${slot.teacher}`
               )
-              .join("<br>");
-            table += `<td style="font-size: 9px;">${slotsText}</td>`;
+              .join(" | ");
+            row.push(slotsText);
           } else {
-            table += '<td style="background: #f8f9fa;">ফাঁকা</td>';
+            row.push("ফাঁকা");
           }
         }
       });
-      table += "</tr>";
+      data.push(row);
     });
-
-    table += "</table>";
-    return table;
-  }
-
-  generateClassTable(classData) {
-    const classKey = classData.grade.toString();
-    const classRoutine = AppState.timetable.classWise[classKey];
-
-    if (!classRoutine) return "";
-
-    let table = `
-            <h2>ক্লাস ${classData.grade}</h2>
-            <table class="timetable">
-                <tr><th>দিন/ঘন্টা</th>
-        `;
-
-    PERIODS.forEach((period, index) => {
-      table += `<th>${period === "বিরতি" ? "বিরতি" : period}<br><small>${
-        TIME_SLOTS[index]
-      }</small></th>`;
-    });
-    table += "</tr>";
-
-    DAYS.forEach((day) => {
-      table += `<tr><td style="background: #3498db; color: white; font-weight: bold;">${day}</td>`;
-      PERIODS.forEach((period) => {
-        if (period === "বিরতি") {
-          table += '<td style="background: #f8f9fa;">বিরতি</td>';
-        } else {
-          const slotData = classRoutine?.[day]?.[period];
-          if (slotData) {
-            table += `<td><strong>${slotData.subject}</strong><br><small>${
-              slotData.teacher
-            }</small><br><small>${
-              slotData.teacherRank || ""
-            }</small><br><small>${slotData.room}</small><br><small>${
-              slotData.daysPerWeek || 1
-            }d/w</small></td>`;
-          } else {
-            table += '<td style="background: #f8f9fa;">ফাঁকা</td>';
-          }
-        }
-      });
-      table += "</tr>";
-    });
-
-    table += "</table>";
-    return table;
-  }
-
-  generateExcelData() {
-    let data = [
-      ["মিরপুর উচ্চ বিদ্যালয় - দ্বন্দ্ব মুক্ত রুটিন"],
-      ["নবীনগর, ব্রাহ্মণবাড়িয়া"],
-      [""],
-    ];
-
-    // Add full schedule data first
-    if (AppState.generatedRoutineTypes.fullSchedule) {
-      data.push(["সম্পূর্ণ স্কুল রুটিন"]);
-
-      const headerRow = ["দিন/ঘন্টা"];
-      PERIODS.forEach((period, index) => {
-        headerRow.push(
-          `${period === "বিরতি" ? "বিরতি" : period} (${TIME_SLOTS[index]})`
-        );
-      });
-      data.push(headerRow);
-
-      DAYS.forEach((day) => {
-        const row = [day];
-        PERIODS.forEach((period) => {
-          if (period === "বিরতি") {
-            row.push("বিরতি");
-          } else {
-            const slots = AppState.timetable.fullSchedule[day]?.[period] || [];
-            if (slots.length > 0) {
-              const slotsText = slots
-                .map(
-                  (slot) =>
-                    `${slot.subject} (${slot.classKey}) - ${slot.teacher} (${
-                      slot.teacherRank || ""
-                    }) [${slot.daysPerWeek || 1}d/w]`
-                )
-                .join(" | ");
-              row.push(slotsText);
-            } else {
-              row.push("ফাঁকা");
-            }
-          }
-        });
-        data.push(row);
-      });
-      data.push([""]);
-    }
-
-    // Add individual class data
-    if (AppState.generatedRoutineTypes.classWise) {
-      AppState.derivedClasses.forEach((cls) => {
-        const classKey = cls.grade.toString();
-        data.push([`ক্লাস: ${classKey}`]);
-
-        const headerRow = ["দিন/ঘন্টা"];
-        PERIODS.forEach((period, index) => {
-          headerRow.push(
-            `${period === "বিরতি" ? "বিরতি" : period} (${TIME_SLOTS[index]})`
-          );
-        });
-        data.push(headerRow);
-
-        DAYS.forEach((day) => {
-          const row = [day];
-          PERIODS.forEach((period) => {
-            if (period === "বিরতি") {
-              row.push("বিরতি");
-            } else {
-              const slotData =
-                AppState.timetable.classWise[classKey]?.[day]?.[period];
-              if (slotData) {
-                row.push(
-                  `${slotData.subject} | ${slotData.teacher} | ${
-                    slotData.teacherRank || ""
-                  } | ${slotData.room} | ${slotData.daysPerWeek || 1}d/w`
-                );
-              } else {
-                row.push("ফাঁকা");
-              }
-            }
-          });
-          data.push(row);
-        });
-        data.push([""]);
-      });
-    }
 
     return data;
   }
