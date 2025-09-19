@@ -205,7 +205,7 @@ class AdvancedSchoolRoutineApp {
         // Create virtual rooms based on class and subject
         const roomKey = `room-${
           assignment.classGrade
-        }-${assignment.subjectName.toLowerCase()}`;
+        }-${assignment.subjectName.charAt(0)}`;
         if (!roomsMap.has(roomKey)) {
           roomsMap.set(roomKey, {
             id: generateUniqueId(),
@@ -418,9 +418,9 @@ class AdvancedSchoolRoutineApp {
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Class Days *</label>
+                    <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
                     <select class="form-control day-range" required>
-                        <option value="">Select day range or number</option>
+                        <option value="">Select day range or specific day</option>
                         <option value="1-2">1-2 (Sunday to Monday)</option>
                         <option value="1-3">1-3 (Sunday to Tuesday)</option>
                         <option value="1-4">1-4 (Sunday to Wednesday)</option>
@@ -431,11 +431,11 @@ class AdvancedSchoolRoutineApp {
                         <option value="3-4">3-4 (Tuesday to Wednesday)</option>
                         <option value="3-5">3-5 (Tuesday to Thursday)</option>
                         <option value="4-5">4-5 (Wednesday to Thursday)</option>
-                        <option value="1">1 (Any 1 day per week)</option>
-                        <option value="2">2 (Any 2 days per week)</option>
-                        <option value="3">3 (Any 3 days per week)</option>
-                        <option value="4">4 (Any 4 days per week)</option>
-                        <option value="5">5 (Any 5 days per week)</option>
+                        <option value="1">1 (Sunday only)</option>
+                        <option value="2">2 (Monday only)</option>
+                        <option value="3">3 (Tuesday only)</option>
+                        <option value="4">4 (Wednesday only)</option>
+                        <option value="5">5 (Thursday only)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -521,9 +521,9 @@ class AdvancedSchoolRoutineApp {
                 </div>
             </div>
             <div class="form-group">
-                <label>Class Days *</label>
+                <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
                 <select class="form-control day-range" required>
-                    <option value="">Select day range or number</option>
+                    <option value="">Select day range or specific day</option>
                     <option value="1-2">1-2 (Sunday to Monday)</option>
                     <option value="1-3">1-3 (Sunday to Tuesday)</option>
                     <option value="1-4">1-4 (Sunday to Wednesday)</option>
@@ -534,11 +534,11 @@ class AdvancedSchoolRoutineApp {
                     <option value="3-4">3-4 (Tuesday to Wednesday)</option>
                     <option value="3-5">3-5 (Tuesday to Thursday)</option>
                     <option value="4-5">4-5 (Wednesday to Thursday)</option>
-                    <option value="1">1 (Any 1 day per week)</option>
-                    <option value="2">2 (Any 2 days per week)</option>
-                    <option value="3">3 (Any 3 days per week)</option>
-                    <option value="4">4 (Any 4 days per week)</option>
-                    <option value="5">5 (Any 5 days per week)</option>
+                    <option value="1">1 (Sunday only)</option>
+                    <option value="2">2 (Monday only)</option>
+                    <option value="3">3 (Tuesday only)</option>
+                    <option value="4">4 (Wednesday only)</option>
+                    <option value="5">5 (Thursday only)</option>
                 </select>
             </div>
             <div class="form-group">
@@ -620,8 +620,8 @@ class AdvancedSchoolRoutineApp {
         const [startDay, endDay] = dayRange.split("-").map(Number);
         daysPerWeek = endDay - startDay + 1;
       } else {
-        // Single number format like "2"
-        daysPerWeek = parseInt(dayRange);
+        // Single number format like "1" (Sunday only), "2" (Monday only)
+        daysPerWeek = 1; // For single day selection, it's always 1 day per week
       }
 
       assignments.push({
@@ -749,9 +749,9 @@ class AdvancedSchoolRoutineApp {
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Class Days *</label>
+                        <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
                         <select class="form-control day-range" required>
-                            <option value="">Select day range or number</option>
+                            <option value="">Select day range or specific day</option>
                             <option value="1-2">1-2 (Sunday to Monday)</option>
                             <option value="1-3">1-3 (Sunday to Tuesday)</option>
                             <option value="1-4">1-4 (Sunday to Wednesday)</option>
@@ -762,11 +762,11 @@ class AdvancedSchoolRoutineApp {
                             <option value="3-4">3-4 (Tuesday to Wednesday)</option>
                             <option value="3-5">3-5 (Tuesday to Thursday)</option>
                             <option value="4-5">4-5 (Wednesday to Thursday)</option>
-                            <option value="1">1 (Any 1 day per week)</option>
-                            <option value="2">2 (Any 2 days per week)</option>
-                            <option value="3">3 (Any 3 days per week)</option>
-                            <option value="4">4 (Any 4 days per week)</option>
-                            <option value="5">5 (Any 5 days per week)</option>
+                            <option value="1">1 (Sunday only)</option>
+                            <option value="2">2 (Monday only)</option>
+                            <option value="3">3 (Tuesday only)</option>
+                            <option value="4">4 (Wednesday only)</option>
+                            <option value="5">5 (Thursday only)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -787,15 +787,15 @@ class AdvancedSchoolRoutineApp {
                         <label>Subject Name *</label>
                         <div class="subject-dropdown-container">
                             <input type="text" class="form-control subject-name" value="${assignment.subjectName}" required>
-                            <div class="subjectdropdown" id="subjectDropdown${index}">
+                            <div class="subject-dropdown" id="subjectDropdown${index}">
                                 <!-- Options will be populated by JavaScript -->
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Class Days *</label>
+                        <label>Class Days (1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu) *</label>
                         <select class="form-control day-range" required>
-                            <option value="">Select day range or number</option>
+                            <option value="">Select day range or specific day</option>
                             <option value="1-2">1-2 (Sunday to Monday)</option>
                             <option value="1-3">1-3 (Sunday to Tuesday)</option>
                             <option value="1-4">1-4 (Sunday to Wednesday)</option>
@@ -806,11 +806,11 @@ class AdvancedSchoolRoutineApp {
                             <option value="3-4">3-4 (Tuesday to Wednesday)</option>
                             <option value="3-5">3-5 (Tuesday to Thursday)</option>
                             <option value="4-5">4-5 (Wednesday to Thursday)</option>
-                            <option value="1">1 (Any 1 day per week)</option>
-                            <option value="2">2 (Any 2 days per week)</option>
-                            <option value="3">3 (Any 3 days per week)</option>
-                            <option value="4">4 (Any 4 days per week)</option>
-                            <option value="5">5 (Any 5 days per week)</option>
+                            <option value="1">1 (Sunday only)</option>
+                            <option value="2">2 (Monday only)</option>
+                            <option value="3">3 (Tuesday only)</option>
+                            <option value="4">4 (Wednesday only)</option>
+                            <option value="5">5 (Thursday only)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -896,6 +896,23 @@ class AdvancedSchoolRoutineApp {
     this.deriveEntitiesFromTeachers();
     this.initializeTimetableStructures();
 
+    // Reset teacherSlotAssignments for a fresh generation attempt
+    AppState.teacherSlotAssignments = {};
+    AppState.teachers.forEach((teacher) => {
+      AppState.teacherSlotAssignments[teacher.id] = {};
+      teacher.assignments.forEach((assignment) => {
+        const key = `${assignment.subjectName}-${assignment.classGrade}`;
+        AppState.teacherSlotAssignments[teacher.id][key] = {
+          assignedSlot: null,
+          subjectName: assignment.subjectName,
+          classKey: assignment.classGrade.toString(),
+          dayRange: assignment.dayRange,
+          daysPerWeek: assignment.daysPerWeek || 1,
+          assignedDays: 0,
+        };
+      });
+    });
+
     const success = this.executeConflictFreeSchedulingAlgorithm();
 
     if (success) {
@@ -956,11 +973,16 @@ class AdvancedSchoolRoutineApp {
           dayRange: assignment.dayRange,
           daysPerWeek: assignment.daysPerWeek || 1,
           priority: priority,
+          // Add a random factor to ensure different combinations on re-generation
+          randomFactor: Math.random(),
         });
       });
     });
 
-    return queue.sort((a, b) => b.priority - a.priority);
+    // Sort by priority (descending) and then by random factor for varied combinations
+    return queue.sort(
+      (a, b) => b.priority - a.priority || b.randomFactor - a.randomFactor
+    );
   }
 
   calculateAssignmentPriority(assignment) {
@@ -1007,15 +1029,55 @@ class AdvancedSchoolRoutineApp {
   findAvailableSlotsForDaysPerWeek(assignment, actualPeriods, daysPerWeek) {
     const availableSlots = [];
     const classKey = assignment.classKey;
+    const teacher = AppState.teachers.find(
+      (t) => t.id === assignment.teacherId
+    );
 
-    // Check if it's a day range or days per week
+    // Determine valid periods based on teacher rank and subject type
+    let periodsToConsider = [...actualPeriods];
+
+    // 1. Head Teacher / Assistant Head Teacher restriction (no 1st, 2nd period)
+    if (
+      teacher &&
+      (teacher.rank === "প্রধান শিক্ষক" ||
+        teacher.rank === "সহকারী প্রধান শিক্ষক")
+    ) {
+      periodsToConsider = periodsToConsider.filter(
+        (p) => p !== "১ম ঘন্টা" && p !== "২য় ঘন্টা"
+      );
+    }
+
+    // 2. Group-wise subjects (বাংলা, ইংরেজি, গণিত, বিজ্ঞান) start from 3rd period
+    const groupSubjects = [
+      "বাংলা",
+      "ইংরেজি",
+      "গণিত",
+      "বিজ্ঞান",
+      "পদার্থ",
+      "রসায়ন",
+      "জীববিজ্ঞান",
+    ];
+    const isGroupSubject = groupSubjects.some((sub) =>
+      assignment.subjectName.includes(sub)
+    );
+
+    if (isGroupSubject) {
+      periodsToConsider = periodsToConsider.filter(
+        (p) => p !== "১ম ঘন্টা" && p !== "২য় ঘন্টা"
+      );
+    }
+
+    // Check if it's a day range or specific day
     const isRangeFormat = assignment.dayRange.includes("-");
+    const isSpecificDay =
+      !isRangeFormat && !isNaN(parseInt(assignment.dayRange));
 
     if (isRangeFormat) {
       // Handle range format (e.g., "1-3")
       const [startDay, endDay] = assignment.dayRange.split("-").map(Number);
 
-      for (const period of actualPeriods) {
+      for (const period of periodsToConsider) {
+        // Use filtered periods
         let isSlotAvailable = true;
 
         // Check if this slot is available for all days in the range
@@ -1044,9 +1106,32 @@ class AdvancedSchoolRoutineApp {
           }
         }
       }
+    } else if (isSpecificDay) {
+      // Handle specific day format (e.g., "1" means Sunday only)
+      const specificDayIndex = parseInt(assignment.dayRange) - 1; // 0-indexed
+      const specificDay = DAYS[specificDayIndex];
+
+      for (const period of periodsToConsider) {
+        // Use filtered periods
+        if (
+          !this.isTeacherBusyInSlot(
+            assignment.teacherId,
+            specificDay,
+            period
+          ) &&
+          !AppState.timetable.classWise[classKey]?.[specificDay]?.[period]
+        ) {
+          availableSlots.push({
+            period: period,
+            day: specificDay,
+            dayIndex: specificDayIndex,
+          });
+        }
+      }
     } else {
-      // Handle days per week format (e.g., "3" means any 3 days)
-      for (const period of actualPeriods) {
+      // Fallback for any days per week (though the options are now specific)
+      for (const period of periodsToConsider) {
+        // Use filtered periods
         const availableDaysForPeriod = [];
 
         DAYS.forEach((day, dayIndex) => {
@@ -1464,7 +1549,7 @@ class AdvancedSchoolRoutineApp {
     headerSection.innerHTML = `
             <div style="text-align: center; margin-bottom: 25px; border-bottom: 3px solid #4caf50; padding-bottom: 15px;">
                 <h2 style="color: #2c3e50; font-size: 24px; font-weight: 700; margin-bottom: 5px;">
-                    সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)
+                    মিরপুর উচ্চ বিদ্যালয় - সম্পূর্ণ রুটিন
                 </h2>
                 <p style="color: #7f8c8d; font-size: 14px; margin: 0;">
                     মিরপুর উচ্চ বিদ্যালয় - নবীনগর, ব্রাহ্মণবাড়িয়া
@@ -1592,7 +1677,7 @@ class AdvancedSchoolRoutineApp {
                                         line-height: 1.1;
                                     ">
                                         <strong>${slot.subject} (${slot.classKey})</strong><br>
-                                        <small>${slot.teacher}</small>
+                                        <span class="cell-teacher-name-large">${slot.teacher}</span>
                                     </div>
                                 `;
               })
@@ -1639,7 +1724,9 @@ class AdvancedSchoolRoutineApp {
 
         cellContent.innerHTML = `
                     <div class="cell-subject">${slotData.subject}</div>
-                    <div class="cell-teacher">${slotData.teacher}</div>
+                    <div class="cell-teacher-name-large">${
+                      slotData.teacher
+                    }</div>
                     <div class="cell-teacher-rank">${
                       slotData.teacherRank || ""
                     }</div>
@@ -1842,14 +1929,19 @@ class AdvancedSchoolRoutineApp {
     }
 
     // Generate table format content like the image
-    const tableContent = this.generateImageStyleTable();
+    const fullSchoolTableContent = this.generateImageStyleTable();
+    let teacherWiseTableContent = "";
+
+    AppState.teachers.forEach((teacher) => {
+      teacherWiseTableContent += this.generateTeacherWiseTable(teacher);
+    });
 
     const printWindow = window.open("", "_blank");
     printWindow.document.write(`
           <!DOCTYPE html>
           <html>
           <head>
-              <title>সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)</title>
+              <title>মিরপুর উচ্চ বিদ্যালয় - সম্পূর্ণ রুটিন</title>
               <style>
                   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
                   
@@ -1948,6 +2040,21 @@ class AdvancedSchoolRoutineApp {
                       font-style: italic;
                       background: #fafafa;
                   }
+
+                  .teacher-routine-header {
+                    text-align: center;
+                    margin-top: 30px;
+                    margin-bottom: 15px;
+                    padding: 10px;
+                    background: #e0f7fa;
+                    border-radius: 8px;
+                    border: 1px solid #00bcd4;
+                  }
+                  .teacher-routine-header h3 {
+                    color: #006064;
+                    font-size: 16px;
+                    font-weight: 600;
+                  }
                   
                   @media print { 
                       body { 
@@ -1965,10 +2072,11 @@ class AdvancedSchoolRoutineApp {
           </head>
           <body>
               <div class="header">
-                  <h1>সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)</h1>
+                  <h1>মিরপুর উচ্চ বিদ্যালয় - সম্পূর্ণ রুটিন</h1>
                   <p>মিরপুর উচ্চ বিদ্যালয় - নবীনগর, ব্রাহ্মণবাড়িয়া</p>
               </div>
-              ${tableContent}
+              ${fullSchoolTableContent}
+              ${teacherWiseTableContent}
           </body>
           </html>
       `);
@@ -2040,6 +2148,58 @@ class AdvancedSchoolRoutineApp {
     // Add detailed summary information
     table += this.generateDetailedSummary();
 
+    return table;
+  }
+
+  generateTeacherWiseTable(teacher) {
+    let table = `
+        <div class="teacher-routine-header">
+            <h3>শিক্ষক: ${teacher.name} (${
+      teacher.rank || "শিক্ষক"
+    }) - রুটিন</h3>
+        </div>
+        <table class="routine-table">
+            <tr>
+                <th style="width: 80px;">দিনসমূহ</th>
+    `;
+
+    // Header row with periods and time slots
+    PERIODS.forEach((period, index) => {
+      table += `<th style="width: 120px;">
+                    <div>${period}</div>
+                    <div style="font-size: 8px; font-weight: 400;">${TIME_SLOTS[index]}</div>
+                </th>`;
+    });
+    table += "</tr>";
+
+    // Data rows for each day
+    DAYS.forEach((day) => {
+      table += `<tr><td class="day-header">${day}</td>`;
+
+      PERIODS.forEach((period) => {
+        if (period === "বিরতি") {
+          table += '<td class="break-cell">বিরতি</td>';
+        } else {
+          const slot =
+            AppState.timetable.teacherWise[teacher.id]?.[day]?.[period];
+
+          if (slot) {
+            table += `<td>
+                                <div class="subject-info">
+                                    <div class="subject-name">${slot.subject}</div>
+                                    <div class="class-info">(ক্লাস ${slot.classKey})</div>
+                                    <div class="teacher-info">${slot.room}</div>
+                                </div>
+                            </td>`;
+          } else {
+            table += '<td class="empty-cell">ফাঁকা</td>';
+          }
+        }
+      });
+      table += "</tr>";
+    });
+
+    table += "</table>";
     return table;
   }
 
@@ -2238,7 +2398,7 @@ class AdvancedSchoolRoutineApp {
                 (slot) =>
                   `<div class="class-slot">
                    <strong>${slot.subject} (${slot.classKey})</strong><br>
-                   <small>${slot.teacher}</small>
+                   <span class="cell-teacher-name-large">${slot.teacher}</span>
                  </div>`
               )
               .join("");
@@ -2320,6 +2480,11 @@ class AdvancedSchoolRoutineApp {
                         background: #eee !important; 
                         font-weight: bold; 
                     }
+                    .cell-teacher-name-large {
+                        font-size: 11px;
+                        font-weight: bold;
+                        color: #007bff; /* Example color */
+                    }
                     @media print { 
                         body { margin: 10px; }
                         .full-routine-table { font-size: 9px; }
@@ -2328,7 +2493,7 @@ class AdvancedSchoolRoutineApp {
             </head>
             <body>
                 <div class="routine-header">
-                    <h1>সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)</h1>
+                    <h1>মিরপুর উচ্চ বিদ্যালয় - সম্পূর্ণ রুটিন</h1>
                     <p>মিরপুর উচ্চ বিদ্যালয় - নবীনগর, ব্রাহ্মণবাড়িয়া</p>
                 </div>
                 ${fullRoutineContent}
@@ -2342,7 +2507,7 @@ class AdvancedSchoolRoutineApp {
 
   generateExcelData() {
     let data = [
-      ["মিরপুর উচ্চ বিদ্যালয় - সম্পূর্ণ স্কুল রুটিন (দ্বন্দ্ব মুক্ত)"],
+      ["মিরপুর উচ্চ বিদ্যালয় - সম্পূর্ণ স্কুল রুটিন"],
       ["নবীনগর, ব্রাহ্মণবাড়িয়া"],
       [""],
     ];
